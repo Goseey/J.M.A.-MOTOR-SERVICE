@@ -1,0 +1,68 @@
+# ───── Environment / secrets ─────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ───── Python ─────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+*.egg-info/
+build/
+dist/
+pip-log.txt
+
+# ───── Node / React ─────
+node_modules/
+yarn-error.log
+yarn-debug.log*
+npm-debug.log*
+.pnp.*
+.yarn/cache
+.yarn/install-state.gz
+.eslintcache
+
+# CRA build outputs
+/frontend/build/
+/frontend/.cache/
+
+# ───── Editors / OS ─────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log
+
+# ───── Project-internal (Emergent platform) ─────
+# These are internal scaffolding files, not part of the deployable repo:
+/.emergent/
+/memory/
+/test_reports/
+/design_guidelines.json
+/tests/
+
+# Keep backend pytest tests though:
+!/backend/tests/
+!/backend/tests/**
+
+# ───── Misc ─────
+*.tmp
+*.bak
+.tmp/
