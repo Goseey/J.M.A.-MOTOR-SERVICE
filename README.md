@@ -222,6 +222,17 @@ Admin endpoint — returns the latest submissions sorted by `created_at` desc.
 
 ---
 
+## ☁️ Deploy
+
+Vercel-ready out of the box — see **[DEPLOY.md](./DEPLOY.md)** for the step-by-step guide
+(monorepo via `vercel.json`, MongoDB Atlas setup, env-var mapping, Resend domain verification).
+
+Quick deploy:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+---
+
 ## 📜 License
 
 MIT — see [LICENSE](./LICENSE).
