@@ -1,0 +1,104 @@
+{
+  "theme": "dark",
+  "archetype": "5",
+  "archetype_name": "Luxury / Premium Automotive",
+  "typography": {
+    "headings": "Sora",
+    "body": "Manrope",
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "hierarchy_rules": "Use tracking-tight for headings (H1/H2). Keep H1 max text-5xl md:text-6xl. Use uppercase with wide tracking (tracking-[0.2em]) for overlines and small labels. Do not use fashion serif fonts."
+  },
+  "colors": {
+    "background_base": "#050505",
+    "background_surface": "#121212",
+    "background_card": "#18181A",
+    "primary_accent": "#D4AF37",
+    "secondary_accent": "#F59E0B",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A3A3A3",
+    "border_subtle": "rgba(255, 255, 255, 0.1)",
+    "rules": "Avoid pure black #000000 without texture. Prioritize deep obsidian and graphite. Accent colors (gold/amber) are used sparingly for CTAs, icons, and highlights to signal luxury. No childish colors."
+  },
+  "spacing_and_layout": {
+    "strategy": "Generous spacing. Use p-6, p-8, or p-12 for internal card paddings where possible. Section spacing should be py-24 or py-32.",
+    "grid_system": "Bento grids for services. Asymmetric layouts for 'Why Choose Us'. Use grid-cols-1 md:grid-cols-3 lg:grid-cols-4 for dense information.",
+    "border_radius": "Sharp or slightly rounded (rounded-none to rounded-md max) to maintain a mechanical, precision-focused feel."
+  },
+  "components": {
+    "header": {
+      "style": "Glassmorphism (backdrop-blur-xl bg-black/60) with 1px bottom border (border-white/10). Sticky positioning z-50.",
+      "logo": "Text-based wordmark. Font: Sora, bold, uppercase. 'JMA' in white/silver, 'MOTOR SERVICE' smaller with gold/amber accent. No cartoon icons."
+    },
+    "hero": {
+      "style": "Cinematic. Image overlay max bg-black/50. Animated headlights/reflections via CSS/Framer Motion. Parallax scroll effect.",
+      "badges": "Google rating (5.0, 8 reviews) card floating over the image or positioned carefully with glassmorphism.",
+      "text": "Reliable Car Repair & Maintenance in Dublin City Centre",
+      "subtext": "Professional diagnostics, servicing, repairs and general vehicle maintenance for local drivers in Dublin."
+    },
+    "cards": {
+      "style": "Flat background, 1px subtle border, no heavy box-shadows. On hover: slight lift (-translate-y-1), border color brightens to white/20 or gold/50."
+    },
+    "buttons": {
+      "primary": "Solid gold/amber background with black text. Sharp edges. Hover: lighter amber.",
+      "secondary": "Transparent with 1px border. White text. Hover: bg-white/10.",
+      "whatsapp": "Use standard WhatsApp green (#25D366) or a premium dark variant with green icon for consistency with the dark theme."
+    }
+  },
+  "motion": {
+    "philosophy": "Smooth, deliberate, and cinematic. No bouncy or playful animations.",
+    "hero_animations": "Subtle scale up on background, slow fade-in for text, shimmering effect on the car's headlights using CSS masks or gradients. Add soft smoke/atmosphere if possible.",
+    "scroll": "Fade-up for elements entering viewport (Framer Motion). Parallax effect on hero."
+  },
+  "media": {
+    "hero_background": {
+      "url": "https://images.pexels.com/photos/17245109/pexels-photo-17245109.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1080&w=1920",
+      "description": "Sleek sports car with illuminated headlights in dark setting. Ideal for cinematic hero. Add CSS overlay to make it moody."
+    },
+    "services_texture": {
+      "url": "https://images.unsplash.com/photo-1769641240990-2b25a8c8d499",
+      "description": "Dark sedan parked in a concrete garage. Use as a subdued background for the services section."
+    },
+    "garage_context": {
+      "url": "https://images.pexels.com/photos/4489735/pexels-photo-4489735.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=1200",
+      "description": "Dimly lit industrial garage filled with tools. Great for the 'Why Choose Us' section."
+    },
+    "engine_detail": {
+      "url": "https://images.pexels.com/photos/11456554/pexels-photo-11456554.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=800&w=1200",
+      "description": "Detailed close-up of a vintage car engine showing metallic components. Useful for specific service cards or textures."
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "usage": "Use thin, sharp icons (strokeWidth={1.5})."
+  },
+  "accessibility": {
+    "contrast": "Ensure text over images has sufficient contrast. Use text-shadow or gradient overlays.",
+    "motion": "MUST respect prefers-reduced-motion media query. Disable heavy parallax and headlight animations for users requesting reduced motion.",
+    "testing": "All interactive elements MUST have data-testid attributes (e.g., data-testid='hero-cta-button', data-testid='service-card')."
+  },
+  "content_requirements": {
+    "reviews": "Strictly use '5.0 on Google based on 8 reviews'. Do NOT invent fake customer names. Use a professional aggregate rating card.",
+    "services": [
+      "Car diagnostics",
+      "Full car service",
+      "Oil and filter change",
+      "Brake inspection and repair",
+      "Engine maintenance",
+      "Battery check and replacement",
+      "Suspension and steering",
+      "Pre-NCT check",
+      "General car repairs"
+    ],
+    "contact": {
+      "address": "Brunswick Pl, City centre, Dublin, D02 VK57",
+      "phone": "085 224 6411",
+      "plus_code": "8QV4+4C Dublin"
+    }
+  }
+}
