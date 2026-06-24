@@ -1,13 +1,13 @@
 # J.M.A. Motor Service — Landing Page
 
 > Premium dark cinematic landing page for **J.M.A. Motor Service**, a real car repair & maintenance business in Dublin City Centre.
-> Built to look ready-to-ship: no fake reviews, no fake luxury copy, no template feel.
+> Built as a single Next.js application — no fake reviews, no fake luxury copy, no template feel.
 
 <p align="center">
+  <img alt="Next.js"    src="https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white&style=flat-square">
   <img alt="React"      src="https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square">
-  <img alt="FastAPI"    src="https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white&style=flat-square">
-  <img alt="MongoDB"    src="https://img.shields.io/badge/MongoDB-Async%20Motor-13aa52?logo=mongodb&logoColor=white&style=flat-square">
   <img alt="Tailwind"   src="https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwindcss&logoColor=white&style=flat-square">
+  <img alt="Vercel"     src="https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white&style=flat-square">
   <img alt="License"    src="https://img.shields.io/badge/license-MIT-D4AF37?style=flat-square">
 </p>
 
@@ -16,24 +16,25 @@
 ## ✨ Highlights
 
 - **Cinematic hero** — realistic licensed car photo + animated headlight glows, diagonal light sweep, drifting smoke, parallax. Fully `prefers-reduced-motion` aware.
-- **Premium dark palette** — graphite + black with gold (`#D4AF37`) accents. Sora (display) + Manrope (body), all from Google Fonts.
-- **Real data only** — Google rating shown as the actual aggregate `5.0 / 8 reviews`. No fabricated testimonials, no fake awards.
-- **Service request flow** — validated React form → FastAPI → MongoDB. Best-effort transactional email via Resend (gracefully no-ops if not configured).
+- **Premium dark palette** — graphite + black with gold (`#D4AF37`) accents. Sora (display) + Manrope (body), loaded via `next/font/google`.
+- **Real data only** — Google rating shown as the actual aggregate `5.0 / 8 reviews`. No fabricated testimonials.
+- **Same-origin contact form** — validated → Next.js API route (`/api/service-requests`) → MongoDB (optional) + Resend email (optional). Both are best-effort: if not configured, the form **still succeeds**.
 - **Mobile-first** — sticky header with burger drawer, floating Call / WhatsApp / Directions cluster on scroll, fluid down to 360 px.
-- **SEO ready** — page title, meta description, OpenGraph, and JSON-LD `AutoRepair` structured data baked in.
-- **Accessibility** — semantic landmarks, `data-testid` on every interactive element, focus rings, reduced-motion safe, contrast checked.
+- **SEO ready** — Next.js metadata API + JSON-LD `AutoRepair` structured data baked into the root layout.
+- **Single-deploy on Vercel** — auto-detected as Next.js, no monorepo / serverless gymnastics needed.
 
 ---
 
 ## 🧱 Tech stack
 
-| Layer       | Choice                                                                 |
-|-------------|------------------------------------------------------------------------|
-| Frontend    | React 19, CRA + CRACO, Tailwind CSS 3.4, lucide-react, Framer Motion   |
-| Backend     | FastAPI, Motor (async MongoDB), Pydantic v2, Resend SDK                |
-| Database    | MongoDB (collection: `service_requests`)                               |
-| Email       | Resend — optional, gracefully degrades when API key is missing         |
-| Testing     | pytest (backend), Playwright (frontend smoke)                          |
+| Layer       | Choice                                                           |
+|-------------|------------------------------------------------------------------|
+| Framework   | Next.js 15 (App Router) + React 19                              |
+| Styling     | Tailwind CSS 3.4, lucide-react icons, `next/font` for Sora + Manrope |
+| API         | Next.js Route Handler at `/api/service-requests` (Node runtime) |
+| Database    | MongoDB (optional) via the official `mongodb` driver — lazy-connected |
+| Email       | Resend (optional) — gracefully no-ops when API key is missing    |
+| Deploy      | Vercel — auto-detected, single application                       |
 
 ---
 
@@ -41,134 +42,100 @@
 
 ```
 .
-├── backend/
-│   ├── server.py                 # FastAPI app, all routes under /api
-│   ├── requirements.txt
-│   ├── .env.example              # copy → .env and fill in
-│   └── tests/
-│       └── backend_test.py       # 12 pytest cases
-├── frontend/
-│   ├── src/
-│   │   ├── App.js                # composition root
-│   │   ├── components/
-│   │   │   ├── Header.jsx        # sticky nav + mobile drawer
-│   │   │   ├── Hero.jsx          # cinematic hero
-│   │   │   ├── Services.jsx      # 9 service cards
-│   │   │   ├── WhyUs.jsx
-│   │   │   ├── Reviews.jsx       # Google rating card (real data)
-│   │   │   ├── Contact.jsx       # address + map + CTAs
-│   │   │   ├── ServiceRequestForm.jsx
-│   │   │   ├── FAQ.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── FloatingActions.jsx
-│   │   │   ├── Logo.jsx
-│   │   │   ├── form/FormField.jsx
-│   │   │   └── reviews/RatingCard.jsx
-│   │   ├── hooks/useScrollY.js   # shared scroll + reduced-motion hook
-│   │   ├── lib/
-│   │   │   ├── api.js            # axios client + submitServiceRequest
-│   │   │   ├── business.js       # SINGLE source of truth for business data
-│   │   │   └── validation.js     # data-driven form validation rules
-│   │   ├── App.css / index.css
-│   │   └── index.js
-│   ├── public/
-│   │   ├── index.html            # title, meta, JSON-LD AutoRepair
-│   │   └── favicon.svg           # JMA wordmark favicon
-│   ├── tailwind.config.js
-│   ├── craco.config.js
-│   └── .env.example
-├── README.md
-└── LICENSE
+├── app/
+│   ├── layout.jsx                       # Root layout — fonts, metadata, JSON-LD
+│   ├── page.jsx                         # Home page — composes all sections
+│   ├── globals.css                      # Tailwind base + custom CSS effects
+│   ├── icon.svg                         # Favicon (JMA wordmark)
+│   └── api/service-requests/route.js    # POST/GET API route
+├── components/
+│   ├── Header.jsx          # sticky nav + mobile drawer
+│   ├── Hero.jsx            # cinematic hero
+│   ├── Services.jsx        # 9 service cards
+│   ├── WhyUs.jsx
+│   ├── Reviews.jsx
+│   ├── Contact.jsx
+│   ├── ServiceRequestForm.jsx
+│   ├── FAQ.jsx
+│   ├── Footer.jsx
+│   ├── FloatingActions.jsx
+│   ├── Logo.jsx
+│   ├── form/FormField.jsx
+│   └── reviews/RatingCard.jsx
+├── hooks/useScrollY.js     # shared scroll + reduced-motion hook
+├── lib/
+│   ├── business.js         # SINGLE source of truth for business data
+│   ├── validation.js       # data-driven form validation rules
+│   └── api.js              # same-origin fetch wrapper
+├── public/                 # static assets (currently empty)
+├── next.config.mjs
+├── tailwind.config.js
+├── postcss.config.js
+├── jsconfig.json           # @/ → repo root alias
+├── vercel.json             # minimal — declares the Next.js framework
+├── .env.example
+├── DEPLOY.md
+└── README.md
 ```
 
 ---
 
 ## 🚀 Quick start
 
-### Prerequisites
-- Node.js 20+, Yarn 1.x
-- Python 3.11+
-- MongoDB (local or cloud)
-
-### 1. Backend
-
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env          # then edit values
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+yarn install            # or `npm install`
+cp .env.example .env.local   # (optional — see env vars below)
+yarn dev                # http://localhost:3000
 ```
 
-Health check: `curl http://localhost:8001/api/health`
-
-### 2. Frontend
+Production build & run:
 
 ```bash
-cd frontend
-yarn install
-cp .env.example .env          # then edit REACT_APP_BACKEND_URL
+yarn build
 yarn start
 ```
 
-The app starts on http://localhost:3000.
-
-> ⚠️ `REACT_APP_BACKEND_URL` must be your backend's **public** base URL (no trailing slash, no `/api` suffix). The frontend appends `/api` itself.
+> The site works with **no environment variables at all** — submissions are validated and the success response is returned, but they're only logged to the server console (no DB persistence, no email). For real persistence, configure `MONGO_URL` and `RESEND_API_KEY` (see below).
 
 ---
 
 ## 🔐 Environment variables
 
-### `backend/.env`
+Everything is optional for the first deploy. Add what you need, when you need it.
 
-| Key               | Required | Notes                                                                         |
-|-------------------|----------|-------------------------------------------------------------------------------|
-| `MONGO_URL`       | ✅       | e.g. `mongodb://localhost:27017`                                              |
-| `DB_NAME`         | ✅       | e.g. `jma_motor_service`                                                      |
-| `CORS_ORIGINS`    |          | `*` or comma-separated list of origins                                        |
-| `RESEND_API_KEY`  |          | Get from https://resend.com → API Keys. Empty → email skipped, form still works |
-| `SENDER_EMAIL`    |          | Default `onboarding@resend.dev`. Use a verified domain for production         |
-| `BUSINESS_EMAIL`  |          | Where service requests are forwarded                                          |
+| Key                            | Where    | Required | Notes                                                              |
+|--------------------------------|----------|:--------:|--------------------------------------------------------------------|
+| `MONGO_URL`                    | Server   |          | MongoDB Atlas `mongodb+srv://...` URI. Empty → log-only mode       |
+| `DB_NAME`                      | Server   |          | Defaults to `jma_motor_service`                                     |
+| `RESEND_API_KEY`               | Server   |          | Resend API key (`re_…`). Empty → email is skipped                  |
+| `SENDER_EMAIL`                 | Server   |          | Default `onboarding@resend.dev`. Use a verified domain in prod     |
+| `BUSINESS_EMAIL`               | Server   |          | Inbox that receives form notifications                              |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER`  | Browser  |          | International, no `+`. Empty → WhatsApp buttons are hidden          |
 
-### `frontend/.env`
-
-| Key                          | Required | Notes                                                       |
-|------------------------------|----------|-------------------------------------------------------------|
-| `REACT_APP_BACKEND_URL`      | ✅       | Public URL of the FastAPI backend                           |
-| `REACT_APP_WHATSAPP_NUMBER`  |          | International format, no `+` (e.g. `353852246411`). Empty → WhatsApp button hidden |
-| `WDS_SOCKET_PORT`            |          | Dev server WebSocket port (default `443` for HTTPS previews) |
-
----
-
-## 🧪 Tests
-
-```bash
-# Backend
-cd backend
-pytest tests/backend_test.py -v
-# → 12 passed
-```
-
-The pytest suite hits the live backend (no mocks) — health, CORS, create + persistence,
-validation rules, list endpoint.
+See [`.env.example`](./.env.example) for a copy-paste template.
 
 ---
 
 ## 🔌 API reference
 
-Base URL: `{REACT_APP_BACKEND_URL}/api`
+Base URL: `/api` (same-origin).
 
-### `GET /api/health`
+### `GET /api/service-requests`
+
+Lightweight health/status probe.
+
 ```json
 {
   "status": "ok",
   "service": "jma-motor-service",
+  "db_configured": false,
   "email_configured": false,
-  "time": "2026-06-24T20:25:22.476Z"
+  "time": "2026-06-24T21:06:21.086Z"
 }
 ```
 
 ### `POST /api/service-requests`
+
 **Body**
 ```json
 {
@@ -181,21 +148,18 @@ Base URL: `{REACT_APP_BACKEND_URL}/api`
   "message": "Squealing brakes"       // optional
 }
 ```
+
 **Response — 201**
 ```json
 {
-  "id": "618f611f-dac0-4e0d-9614-c3c246f1ea15",
+  "id": "310d8f14-a758-44b7-bb78-6388a0588d50",
   "...": "...same fields...",
   "email_sent": false,
-  "created_at": "2026-06-24T20:07:52.768Z"
+  "created_at": "2026-06-24T21:06:37.380Z"
 }
 ```
-Returns **422** on validation errors. The request is always persisted before the email
-attempt — email is best-effort.
 
-### `GET /api/service-requests?limit=N`
-Admin endpoint — returns the latest submissions sorted by `created_at` desc.
-**Currently unauthenticated — protect before exposing publicly.**
+Returns **422** on validation errors with an `errors` map per field. The request is **always validated first**, then best-effort persisted, then best-effort emailed — any single failure does not break the user-facing success path.
 
 ---
 
@@ -206,30 +170,34 @@ Admin endpoint — returns the latest submissions sorted by `created_at` desc.
 | Background   | `#050505` deep obsidian, `#121214` surface, `#18181b` card |
 | Accent       | `#D4AF37` gold, `#F59E0B` amber              |
 | Text         | `#FFFFFF` primary, `#A3A3A3` muted           |
-| Fonts        | **Sora** (display, headings) / **Manrope** (body) |
+| Fonts        | **Sora** (display) / **Manrope** (body)      |
 | Radii        | `rounded-sm` — mechanical / precision feel   |
 | Motion       | All animations honour `prefers-reduced-motion: reduce` |
 
 ---
 
-## 🛣️ Roadmap
+## ☁️ Deploy to Vercel
 
-- [ ] Protect `GET /api/service-requests` with API-key auth + simple admin page
-- [ ] Verified Resend sending domain (`noreply@jmamotorservice.ie`) + customer auto-acknowledgement email
-- [ ] Add real opening hours block
-- [ ] OG share image (1200×630) + `sitemap.xml` / `robots.txt`
-- [ ] Replace deprecated `@app.on_event("shutdown")` with FastAPI `lifespan` handler
+See **[DEPLOY.md](./DEPLOY.md)** for the step-by-step guide.
+
+The TL;DR:
+
+1. Push to GitHub.
+2. Import the repo into Vercel — it auto-detects Next.js, no config needed.
+3. *(Optional)* Add `MONGO_URL`, `RESEND_API_KEY`, etc. in Vercel → Settings → Environment Variables.
+4. Click Deploy. Done.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 
 ---
 
-## ☁️ Deploy
+## 🛣️ Roadmap
 
-Vercel-ready out of the box — see **[DEPLOY.md](./DEPLOY.md)** for the step-by-step guide
-(monorepo via `vercel.json`, MongoDB Atlas setup, env-var mapping, Resend domain verification).
-
-Quick deploy:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+- [ ] Protect admin listing (`GET /api/service-requests?admin=1`) with API-key auth
+- [ ] Verified Resend domain + customer auto-acknowledgement email
+- [ ] Real opening hours block
+- [ ] OG share image (1200×630) + `sitemap.xml` / `robots.txt`
+- [ ] Replace background image with a self-hosted optimized version (`next/image`)
 
 ---
 
