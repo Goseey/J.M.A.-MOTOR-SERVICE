@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -9,18 +9,12 @@ import ServiceRequestForm from './components/ServiceRequestForm';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import FloatingActions from './components/FloatingActions';
+import useScrollY from './hooks/useScrollY';
 import { BUSINESS } from './lib/business';
 import './App.css';
 
 function App() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const scrolled = useScrollY() > 16;
 
   return (
     <div className="relative min-h-screen bg-ink-950 text-white antialiased" data-testid="app-root">

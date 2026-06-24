@@ -1,20 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Phone, MessageCircle, Navigation } from 'lucide-react';
 import { links } from '../lib/business';
+import useScrollY from '../hooks/useScrollY';
 
 /**
  * Floating CTA cluster (mobile-priority).
  * Appears after the user has scrolled past the hero on mobile/tablet.
  */
 export default function FloatingActions() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 700);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const visible = useScrollY() > 700;
 
   return (
     <div

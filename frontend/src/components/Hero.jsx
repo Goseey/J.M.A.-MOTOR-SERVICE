@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Phone, MapPin, Send, Star, ShieldCheck, ChevronDown } from 'lucide-react';
 import { BUSINESS, links } from '../lib/business';
+import useScrollY, { usePrefersReducedMotion } from '../hooks/useScrollY';
 
 /**
  * Cinematic premium car hero.
@@ -33,25 +34,11 @@ export default function Hero() {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef(null);
 
-  // Parallax effect (very subtle, perf-friendly with rAF)
-  const [offset, setOffset] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let raf = 0;
-    const handle = () => {
-      const y = window.scrollY;
-      // limit parallax effect to first viewport only
-      if (y < window.innerHeight) {
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => setOffset(y * 0.25));
-      }
-    };
-    window.addEventListener('scroll', handle, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handle);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+  // Parallax — subtle, perf-friendly, disabled for reduced-motion users.
+  const reduced = usePrefersReducedMotion();
+  const scrollY = useScrollY({ disabled: reduced });
+  const viewportH = typeof window === 'undefined' ? 800 : window.innerHeight;
+  const offset = scrollY < viewportH ? scrollY * 0.25 : viewportH * 0.25;
 
   return (
     <section
