@@ -4,10 +4,10 @@ import React from 'react';
  * JMA Logo wordmark — pure text-based mark.
  * "J.M.A." in metallic silver with gold-dot accents; "MOTOR SERVICE" small label.
  */
-export default function Logo({ className = '', compact = false }) {
+export default function Logo({ className = '', compact = false, href = '#home' }) {
   return (
     <a
-      href="#home"
+      href={href}
       className={`group inline-flex items-center gap-3 ${className}`}
       data-testid="jma-logo"
       aria-label="J.M.A. Motor Service — home"
