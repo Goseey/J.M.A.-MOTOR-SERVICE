@@ -1,4 +1,5 @@
 import { Sora, Manrope } from 'next/font/google';
+import { AppProvider } from '@/contexts/AppContext';
 import './globals.css';
 
 const sora = Sora({
@@ -66,6 +67,7 @@ const JSON_LD = {
     reviewCount: '8',
   },
   areaServed: 'Dublin',
+  sameAs: ['https://www.tiktok.com/@j.m.a.motor.servi7'],
 };
 
 export default function RootLayout({ children }) {
@@ -77,7 +79,7 @@ export default function RootLayout({ children }) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        {children}
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );

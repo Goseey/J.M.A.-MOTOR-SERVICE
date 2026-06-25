@@ -1,14 +1,15 @@
+'use client';
+
 import React from 'react';
 import { Star, ExternalLink, MapPin } from 'lucide-react';
 import { BUSINESS, links } from '@/lib/business';
+import { useApp } from '@/contexts/AppContext';
 
 const STAR_KEYS = ['s1', 's2', 's3', 's4', 's5'];
 
-/**
- * Google aggregate-rating card.
- * No fake testimonials — only the real 5.0 / 8 reviews data.
- */
 export default function RatingCard() {
+  const { t } = useApp();
+
   return (
     <div
       className="relative p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-ink-900 to-ink-800 border border-white/10 rounded-sm overflow-hidden"
@@ -30,7 +31,7 @@ export default function RatingCard() {
             </svg>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest2 text-white/55">Google reviews</p>
+            <p className="text-[10px] uppercase tracking-widest2 text-white/55">{t('reviews.googleLabel')}</p>
             <p className="font-display text-base font-semibold text-white">{BUSINESS.name}</p>
           </div>
         </div>
@@ -38,7 +39,7 @@ export default function RatingCard() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold tracking-wide rounded-sm"
           data-testid="verified-badge"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Verified
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {t('reviews.verified')}
         </span>
       </header>
 
@@ -56,12 +57,12 @@ export default function RatingCard() {
             ))}
           </div>
           <p className="mt-3 text-[14px] text-white/75">
-            Based on{' '}
+            {t('reviews.basedOn')}{' '}
             <span className="font-semibold text-white" data-testid="review-count">
-              {BUSINESS.reviewCount} verified reviews
+              {BUSINESS.reviewCount} {t('reviews.reviewsLabel')}
             </span>
           </p>
-          <p className="text-[12px] text-white/45 mt-1">Source: Google Maps · live aggregate</p>
+          <p className="text-[12px] text-white/45 mt-1">{t('reviews.source')}</p>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ export default function RatingCard() {
           data-testid="view-on-google-maps"
           className="inline-flex items-center gap-2 h-11 px-5 bg-white text-ink-950 font-semibold text-[13px] tracking-wide rounded-sm hover:bg-white/90 transition-colors"
         >
-          View on Google Maps
+          {t('reviews.viewOnGoogle')}
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
         <a
@@ -86,7 +87,7 @@ export default function RatingCard() {
           className="inline-flex items-center gap-2 h-11 px-5 border border-white/20 hover:border-white/40 hover:bg-white/5 text-white font-semibold text-[13px] tracking-wide rounded-sm transition-colors"
         >
           <MapPin className="h-4 w-4" />
-          Get Directions
+          {t('common.getDirections')}
         </a>
       </div>
     </div>
