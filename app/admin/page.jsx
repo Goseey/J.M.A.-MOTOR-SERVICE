@@ -1,58 +1,15 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import {
-  ArrowUpRight,
-  Bell,
-  CalendarClock,
-  CheckCircle2,
-  Clock3,
+  ArrowDownAZ,
+  ArrowUpAZ,
+  CalendarDays,
   Database,
-  FileClock,
-  Filter,
-  HardDriveUpload,
-  LayoutDashboard,
-  MessageSquare,
-  Phone,
+  ListFilter,
   Search,
-  Shield,
-  Wrench,
 } from 'lucide-react';
 import AdminShell from '@/components/AdminShell';
-import { BUSINESS } from '@/lib/business';
-
-export const metadata = {
-  title: `Admin Preview | ${BUSINESS.name}`,
-  description: 'Internal admin preview page for J.M.A. Motor Service.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
-const KPIS = [
-  {
-    label: 'New requests today',
-    value: '12',
-    note: 'Preview metric only',
-    icon: Bell,
-  },
-  {
-    label: 'Awaiting callback',
-    value: '5',
-    note: 'Needs workflow wiring later',
-    icon: Phone,
-  },
-  {
-    label: 'Booked in',
-    value: '7',
-    note: 'Placeholder pipeline state',
-    icon: CalendarClock,
-  },
-  {
-    label: 'Average response time',
-    value: '18m',
-    note: 'Static demo figure',
-    icon: Clock3,
-  },
-];
 
 const REQUESTS = [
   {
@@ -63,7 +20,7 @@ const REQUESTS = [
     service: 'Full car service',
     status: 'New',
     preferredDate: '2026-06-27',
-    createdAt: 'Today · 09:14',
+    submittedAt: '2026-06-25T09:14:00Z',
   },
   {
     id: 'REQ-24062',
@@ -73,7 +30,7 @@ const REQUESTS = [
     service: 'Pre-NCT check',
     status: 'Contacted',
     preferredDate: '2026-06-28',
-    createdAt: 'Today · 10:42',
+    submittedAt: '2026-06-25T10:42:00Z',
   },
   {
     id: 'REQ-24063',
@@ -82,8 +39,8 @@ const REQUESTS = [
     car: 'BMW 320d, 2018',
     service: 'Brake inspection and repair',
     status: 'Awaiting customer',
-    preferredDate: 'Flexible',
-    createdAt: 'Today · 12:08',
+    preferredDate: '',
+    submittedAt: '2026-06-24T12:08:00Z',
   },
   {
     id: 'REQ-24064',
@@ -93,7 +50,7 @@ const REQUESTS = [
     service: 'Car diagnostics',
     status: 'Booked',
     preferredDate: '2026-06-29',
-    createdAt: 'Today · 14:31',
+    submittedAt: '2026-06-23T14:31:00Z',
   },
   {
     id: 'REQ-24065',
@@ -102,279 +59,145 @@ const REQUESTS = [
     car: 'Audi A4, 2017',
     service: 'General car repairs',
     status: 'New',
-    preferredDate: 'ASAP',
-    createdAt: 'Today · 16:03',
-  },
-];
-
-const PIPELINE = [
-  { title: 'Inbox', count: 5, description: 'Fresh service requests from the website form.' },
-  { title: 'Contacted', count: 3, description: 'Customers reached, waiting on confirmation.' },
-  { title: 'Booked', count: 4, description: 'Confirmed for workshop intake or inspection.' },
-  { title: 'Done', count: 9, description: 'Completed jobs to be sourced from Postgres later.' },
-];
-
-const FUTURE_STACK = [
-  {
-    title: 'Neon Postgres integration',
-    body: 'This page is intentionally UI-first. Data wiring can later plug into Neon/Postgres without redesigning the screen architecture.',
-    icon: Database,
+    preferredDate: '',
+    submittedAt: '2026-06-22T16:03:00Z',
   },
   {
-    title: 'Server actions or route handlers',
-    body: 'Filtering, pagination and lead updates can live behind a secure admin layer once persistence is ready.',
-    icon: HardDriveUpload,
-  },
-  {
-    title: 'Auth & audit trail',
-    body: 'Next pass should add admin auth, role checks and action history before this becomes operational.',
-    icon: Shield,
+    id: 'REQ-24066',
+    customer: 'Laura Quinn',
+    phone: '085 811 2277',
+    car: 'Skoda Octavia, 2019',
+    service: 'Oil and filter change',
+    status: 'Booked',
+    preferredDate: '2026-06-30',
+    submittedAt: '2026-06-21T08:45:00Z',
   },
 ];
 
 export default function AdminPage() {
+  const [query, setQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const filteredRequests = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    const result = REQUESTS.filter((request) => {
+      const matchesName = !normalizedQuery || request.customer.toLowerCase().includes(normalizedQuery);
+      const submittedDate = request.submittedAt.slice(0, 10);
+      const matchesFrom = !dateFrom || submittedDate >= dateFrom;
+      const matchesTo = !dateTo || submittedDate <= dateTo;
+
+      return matchesName && matchesFrom && matchesTo;
+    });
+
+    result.sort((a, b) => {
+      const aTime = new Date(a.submittedAt).getTime();
+      const bTime = new Date(b.submittedAt).getTime();
+      return sortOrder === 'desc' ? bTime - aTime : aTime - bTime;
+    });
+
+    return result;
+  }, [query, sortOrder, dateFrom, dateTo]);
+
   return (
     <AdminShell>
-      <section className="relative isolate overflow-hidden min-h-[72svh] flex items-center pt-16 pb-16 sm:pt-24 sm:pb-20">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-30 grain"
-          style={{
-            background:
-              'radial-gradient(70% 60% at 50% 40%, #1a1a1d 0%, #0a0a0b 55%, #050505 100%)',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-20 opacity-[0.08]"
-          style={{
-            backgroundImage:
-              'linear-gradient(45deg, rgba(212,175,55,0.4) 0 1px, transparent 1px 80px), linear-gradient(-45deg, rgba(212,175,55,0.25) 0 1px, transparent 1px 80px)',
-          }}
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink-950 via-ink-950/90 to-ink-900" />
-        <div className="absolute right-[8%] top-[18%] w-48 h-48 headlight animate-headlight" aria-hidden="true" />
-        <div className="absolute left-[10%] bottom-[8%] w-36 h-36 headlight animate-headlight" style={{ animationDelay: '0.8s' }} aria-hidden="true" />
-        <div className="light-sweep" aria-hidden="true" />
-        <div className="smoke" aria-hidden="true" />
-
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-10">
-          <div className="grid lg:grid-cols-12 gap-12 items-end">
-            <div className="lg:col-span-7 max-w-4xl">
-              <div className="flex items-center gap-3 mb-6 animate-fade-up" style={{ animationDelay: '120ms' }}>
-                <span className="h-px w-8 bg-gold-400" />
-                <span className="text-[11px] uppercase tracking-widest2 text-gold-300" data-testid="admin-hero-overline">
-                  Internal dashboard preview
-                </span>
-              </div>
-
-              <h1
-                data-testid="admin-hero-headline"
-                className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[66px] font-extrabold leading-[1.02] tracking-tight animate-fade-up"
-                style={{ animationDelay: '220ms' }}
-              >
-                Admin panel <span className="text-metal-gold">placeholder</span>
-                <br className="hidden sm:block" /> for future workshop operations
-              </h1>
-
-              <p
-                data-testid="admin-hero-subtext"
-                className="mt-6 max-w-2xl text-base sm:text-lg text-white/70 leading-relaxed animate-fade-up"
-                style={{ animationDelay: '360ms' }}
-              >
-                Raw UI only for now — same premium visual language as the landing page,
-                but intentionally detached from MongoDB while we prepare the move to Neon Postgres.
-              </p>
-
-              <div className="mt-9 flex flex-wrap items-center gap-3 animate-fade-up" style={{ animationDelay: '480ms' }}>
-                <a
-                  href="#requests"
-                  data-testid="admin-hero-open-requests"
-                  className="inline-flex items-center gap-2 h-12 px-6 bg-gold-400 hover:bg-gold-300 text-ink-950 font-semibold tracking-wide rounded-sm transition-colors shadow-gold"
-                >
-                  <LayoutDashboard className="h-4 w-4" strokeWidth={2.2} /> Open Preview
-                </a>
-                <a
-                  href="#stack"
-                  data-testid="admin-hero-future-stack"
-                  className="inline-flex items-center gap-2 h-12 px-6 border border-white/20 hover:border-white/40 hover:bg-white/5 text-white font-semibold tracking-wide rounded-sm transition-colors"
-                >
-                  <Database className="h-4 w-4" strokeWidth={2} /> Future Stack
-                </a>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5">
-              <div className="relative bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 sm:p-7 rounded-sm animate-fade-up" style={{ animationDelay: '600ms' }} data-testid="admin-hero-note">
-                <span aria-hidden="true" className="pointer-events-none absolute top-0 right-0 h-12 w-px bg-gradient-to-b from-gold-400/60 to-transparent" />
-                <span aria-hidden="true" className="pointer-events-none absolute top-0 right-0 w-12 h-px bg-gradient-to-l from-gold-400/60 to-transparent" />
-                <p className="text-[11px] uppercase tracking-widest2 text-white/45">Current scope</p>
-                <h2 className="mt-3 font-display text-2xl font-semibold text-white">Styled shell, sample leads, future-ready layout.</h2>
-                <p className="mt-4 text-[14px] text-white/65 leading-relaxed">
-                  No live database reads, no write actions, no auth layer yet. This is a clean visual foundation
-                  that can later be connected to secure Postgres-backed admin workflows.
+      <section className="bg-ink-950 border-b border-white/10" data-testid="admin-page-shell">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10 py-10 sm:py-12">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+              <div className="max-w-3xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="h-px w-8 bg-gold-400" />
+                  <span className="text-[11px] uppercase tracking-widest2 text-gold-300" data-testid="admin-overline">
+                    Admin requests preview
+                  </span>
+                </div>
+                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]" data-testid="admin-headline">
+                  Service requests
+                </h1>
+                <p className="mt-4 text-white/65 leading-relaxed max-w-2xl" data-testid="admin-subtext">
+                  Structural placeholder only: search, sort and date filtering are ready,
+                  while the real data source will be connected later during the Neon/Postgres phase.
                 </p>
-                <div className="mt-6 flex items-center gap-3 text-[13px] text-white/70">
-                  <CheckCircle2 className="h-4 w-4 text-gold-300" />
-                  Matches the landing page design system.
-                </div>
               </div>
+
+              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-100" data-testid="admin-db-note">
+                <Database className="h-4 w-4 text-gold-300" strokeWidth={1.8} />
+                <span className="text-[13px] leading-relaxed">No live DB connected yet — mock data only.</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_220px_200px_200px] gap-3" data-testid="admin-filters-bar">
+              <SearchField value={query} onChange={setQuery} />
+              <SortField value={sortOrder} onChange={setSortOrder} />
+              <DateField
+                label="Date from"
+                value={dateFrom}
+                onChange={setDateFrom}
+                testid="admin-date-from"
+              />
+              <DateField
+                label="Date to"
+                value={dateTo}
+                onChange={setDateTo}
+                testid="admin-date-to"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      <section id="overview" className="relative py-24 sm:py-28 bg-ink-950" data-testid="admin-overview-section">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10">
-          <div className="flex items-center gap-3 mb-5">
-            <span className="h-px w-8 bg-gold-400" />
-            <span className="text-[11px] uppercase tracking-widest2 text-gold-300">Overview</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-white/[0.05] rounded-sm overflow-hidden">
-            {KPIS.map(({ icon: Icon, label, value, note }) => (
-              <article key={label} className="group relative bg-ink-900 hover:bg-ink-800 p-6 sm:p-7 transition-colors duration-500 min-h-[180px]" data-testid={`admin-kpi-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="icon-plate inline-flex items-center justify-center h-11 w-11 rounded-sm text-gold-300">
-                    <Icon className="h-5 w-5" strokeWidth={1.7} />
-                  </div>
-                  <span className="text-[10px] uppercase tracking-widest2 text-white/30">Demo</span>
-                </div>
-                <div className="mt-8">
-                  <p className="font-display text-4xl font-bold text-white">{value}</p>
-                  <h3 className="mt-3 font-display text-lg font-semibold text-white tracking-tight">{label}</h3>
-                  <p className="mt-2 text-[13px] text-white/55 leading-relaxed">{note}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="requests" className="relative py-24 sm:py-28 bg-ink-900" data-testid="admin-requests-section">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="h-px w-8 bg-gold-400" />
-                <span className="text-[11px] uppercase tracking-widest2 text-gold-300">Requests</span>
-              </div>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
-                Lead inbox preview in the <span className="text-metal-gold">same visual language</span>.
-              </h2>
-              <p className="mt-5 text-white/65 max-w-2xl leading-relaxed">
-                These are placeholder rows only. The goal here is to lock the screen structure now,
-                so we can later swap in real Postgres data without redesigning the admin flow.
-              </p>
+      <section className="bg-ink-900" data-testid="admin-table-section">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10 py-8 sm:py-10">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="text-sm text-white/55" data-testid="admin-results-count">
+              Showing <span className="text-white font-semibold">{filteredRequests.length}</span> request{filteredRequests.length === 1 ? '' : 's'}
             </div>
-
-            <div className="grid sm:grid-cols-2 gap-3 lg:min-w-[360px]">
-              <ControlPill icon={Search} label="Search by customer / car" />
-              <ControlPill icon={Filter} label="Filter by status" />
+            <div className="text-sm text-white/45" data-testid="admin-default-sort-note">
+              Default order: newest to oldest
             </div>
           </div>
 
-          <div className="mt-12 border border-white/10 bg-ink-950/65 backdrop-blur-md rounded-sm overflow-hidden shadow-ring" data-testid="admin-requests-table-wrap">
-            <div className="hidden xl:grid grid-cols-[1.1fr_1fr_1.1fr_1fr_0.8fr_0.9fr_0.9fr] gap-4 px-6 py-4 border-b border-white/10 text-[11px] uppercase tracking-widest2 text-white/40 bg-white/[0.02]">
-              <span>Customer</span>
+          <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
+            <div className="hidden lg:grid grid-cols-[0.95fr_1.1fr_1.1fr_1.2fr_0.8fr_0.9fr_0.9fr] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+              <span>Request ID</span>
+              <span>Client</span>
               <span>Phone</span>
-              <span>Vehicle</span>
-              <span>Service</span>
+              <span>Vehicle / Service</span>
               <span>Status</span>
               <span>Preferred</span>
-              <span>Received</span>
+              <span>Submitted</span>
             </div>
 
-            <div className="divide-y divide-white/10">
-              {REQUESTS.map((request) => (
-                <article
-                  key={request.id}
-                  className="grid xl:grid-cols-[1.1fr_1fr_1.1fr_1fr_0.8fr_0.9fr_0.9fr] gap-4 px-5 sm:px-6 py-5 bg-ink-950/40 hover:bg-white/[0.02] transition-colors"
-                  data-testid={`admin-request-${request.id.toLowerCase()}`}
-                >
-                  <InfoBlock label="Customer" value={request.customer} subvalue={request.id} />
-                  <InfoBlock label="Phone" value={request.phone} />
-                  <InfoBlock label="Vehicle" value={request.car} />
-                  <InfoBlock label="Service" value={request.service} />
-                  <StatusBlock status={request.status} />
-                  <InfoBlock label="Preferred" value={request.preferredDate} />
-                  <InfoBlock label="Received" value={request.createdAt} />
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="pipeline" className="relative py-24 sm:py-28 bg-ink-950" data-testid="admin-pipeline-section">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10">
-          <div className="grid lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="h-px w-8 bg-gold-400" />
-                <span className="text-[11px] uppercase tracking-widest2 text-gold-300">Pipeline</span>
+            {filteredRequests.length > 0 ? (
+              <div className="divide-y divide-white/10">
+                {filteredRequests.map((request) => (
+                  <article
+                    key={request.id}
+                    className="grid lg:grid-cols-[0.95fr_1.1fr_1.1fr_1.2fr_0.8fr_0.9fr_0.9fr] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    data-testid={`admin-row-${request.id.toLowerCase()}`}
+                  >
+                    <Cell label="Request ID" primary={request.id} secondary="Website form" />
+                    <Cell label="Client" primary={request.customer} />
+                    <Cell label="Phone" primary={request.phone} />
+                    <Cell label="Vehicle / Service" primary={request.car} secondary={request.service} />
+                    <StatusCell status={request.status} />
+                    <Cell label="Preferred" primary={request.preferredDate || 'Not specified'} />
+                    <Cell label="Submitted" primary={formatDateTime(request.submittedAt)} secondary={request.submittedAt.slice(0, 10)} />
+                  </article>
+                ))}
               </div>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
-                From website lead to <span className="text-white/55">workshop intake</span>.
-              </h2>
-              <p className="mt-5 text-white/65 leading-relaxed max-w-md">
-                This section sketches the operational rhythm for future admin tooling:
-                incoming request, callback, booking, then completed job history.
-              </p>
-            </div>
-
-            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-px bg-white/[0.04] rounded-sm overflow-hidden">
-              {PIPELINE.map((item, index) => (
-                <article key={item.title} className="bg-ink-800/80 hover:bg-ink-700/80 p-6 sm:p-7 transition-colors duration-500" data-testid={`admin-pipeline-${item.title.toLowerCase()}`}>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[10px] uppercase tracking-widest2 text-white/35">0{index + 1}</span>
-                    <span className="inline-flex items-center justify-center min-w-11 h-11 px-3 rounded-sm border border-gold-400/25 bg-gold-400/10 text-gold-200 font-display text-xl font-semibold">
-                      {item.count}
-                    </span>
-                  </div>
-                  <h3 className="mt-6 font-display text-xl font-semibold tracking-tight text-white">{item.title}</h3>
-                  <p className="mt-3 text-[14px] text-white/60 leading-relaxed">{item.description}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="stack" className="relative py-24 sm:py-28 bg-ink-900" data-testid="admin-stack-section">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-5">
-              <span className="h-px w-8 bg-gold-400" />
-              <span className="text-[11px] uppercase tracking-widest2 text-gold-300">Future Stack</span>
-            </div>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
-              Built now as a <span className="text-metal-gold">clean shell</span> for Neon/Postgres later.
-            </h2>
-          </div>
-
-          <div className="mt-14 grid grid-cols-1 lg:grid-cols-3 gap-px bg-white/[0.05] rounded-sm overflow-hidden">
-            {FUTURE_STACK.map(({ title, body, icon: Icon }) => (
-              <article key={title} className="bg-ink-900 hover:bg-ink-800 p-7 sm:p-8 transition-colors duration-500 min-h-[240px]" data-testid={`admin-future-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-                <div className="icon-plate inline-flex items-center justify-center h-12 w-12 rounded-sm text-gold-300">
-                  <Icon className="h-5 w-5" strokeWidth={1.7} />
-                </div>
-                <h3 className="mt-6 font-display text-xl font-semibold tracking-tight text-white">{title}</h3>
-                <p className="mt-3 text-[14px] text-white/60 leading-relaxed">{body}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-10 p-6 sm:p-7 border border-white/10 bg-white/[0.02] rounded-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5" data-testid="admin-next-step-note">
-            <div>
-              <p className="text-[11px] uppercase tracking-widest2 text-white/45">Next implementation phase</p>
-              <p className="mt-2 text-white/75 leading-relaxed max-w-3xl">
-                When you are ready for the Neon migration, we can wire this page to real tables,
-                add secure auth, build request detail views and convert the static controls into working admin actions.
-              </p>
-            </div>
-            <div className="inline-flex items-center gap-2 text-gold-300 font-semibold whitespace-nowrap">
-              <Wrench className="h-4 w-4" /> UI ready for backend phase
-            </div>
+            ) : (
+              <div className="px-6 py-16 text-center" data-testid="admin-empty-state">
+                <p className="font-display text-2xl font-semibold text-white">No requests found</p>
+                <p className="mt-3 text-white/55 max-w-xl mx-auto leading-relaxed">
+                  Try clearing the search or widening the date range. Once the real database is connected,
+                  this area will display live service requests.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -382,26 +205,73 @@ export default function AdminPage() {
   );
 }
 
-function ControlPill({ icon: Icon, label }) {
+function SearchField({ value, onChange }) {
   return (
-    <div className="inline-flex items-center gap-3 h-12 px-4 border border-white/10 bg-white/[0.02] rounded-sm text-white/65" data-testid={`admin-control-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-      <Icon className="h-4 w-4 text-gold-300" strokeWidth={1.8} />
-      <span className="text-[13px]">{label}</span>
-    </div>
+    <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
+      <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Search client by name"
+        className="w-full bg-transparent border-0 outline-none text-[14px] text-white placeholder:text-white/30"
+        data-testid="admin-search-input"
+      />
+    </label>
   );
 }
 
-function InfoBlock({ label, value, subvalue }) {
+function SortField({ value, onChange }) {
+  return (
+    <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
+      <ListFilter className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-transparent border-0 outline-none text-[14px] text-white cursor-pointer"
+        data-testid="admin-sort-select"
+      >
+        <option value="desc" className="bg-ink-900 text-white">Newest to oldest</option>
+        <option value="asc" className="bg-ink-900 text-white">Oldest to newest</option>
+      </select>
+      {value === 'desc' ? (
+        <ArrowDownAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
+      ) : (
+        <ArrowUpAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
+      )}
+    </label>
+  );
+}
+
+function DateField({ label, value, onChange, testid }) {
+  return (
+    <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid={testid}>
+      <CalendarDays className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
+      <div className="min-w-0 w-full">
+        <div className="text-[10px] uppercase tracking-widest2 text-white/35">{label}</div>
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-transparent border-0 outline-none text-[14px] text-white"
+          data-testid={`${testid}-input`}
+        />
+      </div>
+    </label>
+  );
+}
+
+function Cell({ label, primary, secondary }) {
   return (
     <div className="min-w-0">
-      <p className="xl:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
-      <p className="text-[14px] text-white/85 leading-relaxed break-words">{value}</p>
-      {subvalue && <p className="mt-1 text-[12px] text-white/40">{subvalue}</p>}
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
+      <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
+      {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
     </div>
   );
 }
 
-function StatusBlock({ status }) {
+function StatusCell({ status }) {
   const tone = {
     New: 'bg-sky-500/10 border-sky-400/30 text-sky-200',
     Contacted: 'bg-amber-500/10 border-amber-400/30 text-amber-200',
@@ -411,11 +281,21 @@ function StatusBlock({ status }) {
 
   return (
     <div>
-      <p className="xl:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">Status</p>
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">Status</p>
       <span className={`inline-flex items-center gap-2 px-3 py-2 rounded-sm border text-[12px] font-semibold tracking-wide ${tone}`}>
         <span className="h-1.5 w-1.5 rounded-full bg-current opacity-90" />
         {status}
       </span>
     </div>
   );
+}
+
+function formatDateTime(value) {
+  return new Intl.DateTimeFormat('en-IE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
 }
