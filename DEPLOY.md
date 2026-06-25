@@ -1,98 +1,149 @@
 # Deploying to Vercel
 
-This is a **single Next.js application**. Vercel auto-detects everything — no special config required for a first successful deploy.
+Single Next.js application — Vercel auto-detects everything.
+
+> For the Neon Postgres setup specifically, see [`db/README.md`](./db/README.md).
 
 ---
 
-## TL;DR — Deploy in 3 steps
+## TL;DR — Deploy in 4 steps
 
-1. **Push this repo to GitHub** → in Vercel click `New Project` → pick the repo.
-2. Vercel auto-detects Next.js 15. Leave all build settings at their defaults:
-   - Framework Preset: **Next.js**
-   - Build Command: `next build` (default)
-   - Output Directory: `.next` (default)
-   - Install Command: `yarn install` (default)
-3. Click **Deploy**. Done — the site is live within ~60 seconds.
+1. **Push to GitHub** → in Vercel `New Project` → pick the repo.
+2. Vercel auto-detects Next.js 15. Leave all build settings at their defaults.
+3. *(Optional but recommended)* Add `DATABASE_URL` and the other env vars in
+   **Vercel → Project → Settings → Environment Variables** (see the table below).
+4. Click **Deploy**.
 
-> No environment variables are required for the first deploy. The contact form works in fallback mode: submissions are validated and the user sees a success message, but they're only logged to the server console.
-
----
-
-## After the first deploy — enabling persistence + email
-
-When you're ready to actually receive submissions, add these in **Vercel → Project → Settings → Environment Variables**:
-
-### Database (recommended)
-
-| Key | Example value | Notes |
-|-----|---------------|-------|
-| `MONGO_URL` | `mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority` | Free M0 cluster at https://cloud.mongodb.com |
-| `DB_NAME`   | `jma_motor_service` | Any name; collection `service_requests` is created automatically |
-
-**MongoDB Atlas setup (5 min):**
-
-1. Sign up at https://cloud.mongodb.com (free, no card).
-2. Create a Cluster → **M0 Free** tier.
-3. **Database Access** → add a user (e.g. `jma_app`) + strong password.
-4. **Network Access** → add IP `0.0.0.0/0` (required for Vercel's egress IPs).
-5. **Connect → Drivers → Node.js** → copy the URI, replace `<password>` with the real value.
-
-### Email notifications (optional)
-
-| Key | Example value | Notes |
-|-----|---------------|-------|
-| `RESEND_API_KEY`  | `re_xxxxxxxxxxxxxxxxxxxxxxxxxx` | Get one at https://resend.com → API Keys |
-| `SENDER_EMAIL`    | `onboarding@resend.dev` (test) **or** `noreply@jmamotorservice.ie` (after domain verify) | Must match a verified sender in Resend |
-| `BUSINESS_EMAIL`  | `info@jmamotorservice.ie` | Where notifications are forwarded |
-
-**Resend setup (10 min):**
-
-1. Create account at https://resend.com.
-2. API Keys → Create API Key → paste into Vercel as `RESEND_API_KEY`.
-3. *(Optional but recommended)* Domains → Add Domain → add the DNS records Resend gives you at your domain registrar. Once verified, set `SENDER_EMAIL=noreply@yourdomain.com`.
-
-Until the domain is verified, leave `SENDER_EMAIL=onboarding@resend.dev` — Resend will send to verified-in-dashboard recipients only.
-
-### Public (browser) variables
-
-| Key | Example value | Notes |
-|-----|---------------|-------|
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | `353852246411` | International format, **no `+`**. Empty → WhatsApp buttons hidden. |
-
-> **Important** — variables prefixed with `NEXT_PUBLIC_` are inlined into the JS bundle at build time. Change them → trigger a redeploy.
+> No environment variables are required for the first deploy. The contact form
+> works in fallback mode (validates + logs submission to server console).
 
 ---
 
-## Quick-copy `.env.local` block
+## Environment variables
+
+Add these in **Vercel → Project → Settings → Environment Variables** (set the
+environment to **Production**, and optionally also **Preview** for branch deploys).
+
+| Key | Required for | Value |
+|-----|--------------|-------|
+| `DATABASE_URL` | Storing real bookings | Neon Postgres connection string from https://console.neon.tech (format: `postgresql://USER:PASS@ep-xxxx-...neon.tech/neondb?sslmode=require`) |
+| `RESEND_API_KEY` | Email notifications | Resend API key (`re_…`) from https://resend.com |
+| `SENDER_EMAIL` | Email notifications | `onboarding@resend.dev` (test) or `noreply@jmamotorservice.ie` (verified domain) |
+| `BUSINESS_EMAIL` | Email notifications | The inbox that receives notifications |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Showing WhatsApp button | International format, no `+` (e.g. `353852246411`) |
+
+After adding env vars: **Deployments → ⋯ → Redeploy** (envs only apply to new deploys).
+
+### Quick-copy template
 
 ```bash
-# Server-only
-MONGO_URL=mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
-DB_NAME=jma_motor_service
+DATABASE_URL=postgresql://USER:PASS@ep-xxxx-...neon.tech/neondb?sslmode=require
 RESEND_API_KEY=
 SENDER_EMAIL=onboarding@resend.dev
 BUSINESS_EMAIL=info@jmamotorservice.ie
-
-# Browser-exposed
 NEXT_PUBLIC_WHATSAPP_NUMBER=353852246411
 ```
 
 ---
 
-## Verify the deploy
+## Step-by-step: from zero to live
+
+### 1. Create the Neon database
+
+Follow [`db/README.md`](./db/README.md). Total time ≈ 3 minutes:
+
+1. Sign up at https://console.neon.tech (free, no card).
+2. Create project `jma-motor-service` in the EU region.
+3. Copy the connection string Neon shows you.
+4. Open the Neon SQL Editor → paste the contents of [`db/schema.sql`](./db/schema.sql) → Run.
+
+### 2. (Optional) Set up Resend for email
+
+1. Sign up at https://resend.com.
+2. API Keys → Create API Key → copy the `re_…` value.
+3. *(Optional)* Domains → Add Domain → follow Resend's DNS instructions. Once verified, set `SENDER_EMAIL=noreply@yourdomain.com`. Until then, leave `SENDER_EMAIL=onboarding@resend.dev`.
+
+### 3. Connect Vercel to GitHub
+
+1. https://vercel.com/new → Import the repository.
+2. Build & dev presets: leave at defaults (Next.js, `yarn install`, `next build`).
+3. Skip adding env vars in the initial wizard if you want — you can add them after the first deploy.
+4. Click **Deploy** — the site is live in ~60 seconds.
+
+### 4. Add env vars and redeploy
+
+1. Project Settings → Environment Variables → add each row from the table above.
+2. Deployments → click the latest deploy → ⋯ → **Redeploy**.
+
+### 5. Verify
 
 ```bash
-# Health check
+# Health
 curl https://<your-domain>.vercel.app/api/service-requests
-# → {"status":"ok","service":"jma-motor-service","db_configured":true,"email_configured":true,...}
+# → { "db_configured": true, "db_reachable": true, ... }
 
 # Test submit
 curl -X POST https://<your-domain>.vercel.app/api/service-requests \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test","phone":"085 555 5555","car_make_model":"VW Golf","service_needed":"Full car service"}'
+  -d '{"name":"Test","phone":"085 555 5555","car_make_model":"VW Golf","service_needed":"Full car service","selected_language":"en"}'
 ```
 
-Submit the form from the live site → if MongoDB is configured, check the `service_requests` collection in Atlas.
+Then in the Neon SQL Editor:
+
+```sql
+SELECT id, customer_name, service_needed, selected_language, status, created_at
+FROM service_requests
+ORDER BY created_at DESC
+LIMIT 5;
+```
+
+You should see your submission.
+
+---
+
+## Testing the booking form
+
+### Locally
+
+```bash
+# 1. Add DATABASE_URL to .env.local
+echo "DATABASE_URL=postgresql://..." >> .env.local
+
+# 2. Start the dev server
+yarn dev
+
+# 3. Open http://localhost:3000, scroll to "Tell us about your car", submit
+# 4. Check Neon SQL Editor → SELECT * FROM service_requests ORDER BY created_at DESC LIMIT 5;
+```
+
+### Production
+
+1. Open the deployed site
+2. Switch to Somali via the header toggle (verify the language persists across reloads)
+3. Click "Ask about this service" on any service card → verify the form preselects that service
+4. Submit the form → verify the success message
+5. Check Neon for the new row
+
+---
+
+## Manual steps on Vercel/Emergent
+
+- After **adding any env var** → redeploy from Vercel UI (envs apply to new deploys only).
+- After **changing slideshow photos** → just push to GitHub. Vercel auto-deploys.
+- After **editing Somali translations** in `lib/i18n.js` → push to GitHub. Auto-deploy.
+
+---
+
+## Replacing slideshow photos
+
+1. Open `/public/images/hero-slideshow/`
+2. Overwrite `slide-1.jpg` … `slide-4.jpg` with your own images
+   - Same filenames (the component reads them by name)
+   - 1920×1080, JPEG, ideally under ~400 KB each
+3. Commit + push → Vercel auto-deploys
+4. The site updates automatically — no code changes
+
+See [`public/images/hero-slideshow/README.md`](./public/images/hero-slideshow/README.md) for tips.
 
 ---
 
@@ -100,22 +151,20 @@ Submit the form from the live site → if MongoDB is configured, check the `serv
 
 | Caveat | Notes |
 |--------|-------|
-| **Cold starts** on the API route (2-5 s after inactivity) | Acceptable for a low-traffic local business. The page itself is static and instant. |
-| **10 s max** request duration (Hobby plan), 60 s (Pro) | The form POST + email is well under 10 s. Fine. |
-| **No WebSockets** on serverless | Not used in this project. |
-| **MongoDB connections per cold start** | Already mitigated — the client is cached in a module-level variable and reused across invocations of the same lambda. |
+| Cold starts on the API route (~2-5 s after long inactivity) | Acceptable for a low-traffic local business |
+| 10 s max request duration on Vercel Hobby (60 s on Pro) | Form POST + email is well under 10 s |
+| Neon free tier auto-suspends after 5 min idle | First request after suspension takes ~500 ms extra to wake the database |
 
 ---
 
 ## Alternatives
 
-If serverless cold starts ever become noticeable:
+If serverless cold starts ever become noticeable, you can move only the API route to:
+- **Render** (always-on Node server, free tier available)
+- **Railway** (~$5/mo hobby)
+- **Fly.io** (global edge)
 
-- **Render** — `render.yaml` for an always-on Node.js server. Free tier available.
-- **Railway** — same idea, ~$5/mo for a hobby app.
-- **Fly.io** — global edge, more control, slightly more setup.
-
-The Next.js app itself doesn't need to change — only the hosting provider.
+The Next.js app on Vercel doesn't need to change — only the hosting provider for the backend.
 
 ---
 

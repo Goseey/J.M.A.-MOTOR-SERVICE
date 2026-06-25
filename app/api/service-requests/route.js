@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
-import crypto from 'node:crypto';
+import { isDbConfigured, insertServiceRequest, markEmailSent, sql } from '@/lib/db';
 
-// Node.js runtime required for the MongoDB / Resend SDKs (Edge runtime can't use them).
+// Node.js runtime is required for the Neon driver and the optional Resend SDK.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VALID_LANGS = new Set(['en', 'so']);
 
+// ---------------------------------------------------------------------------
+// Validation — same rules as the client form (defence in depth).
+// ---------------------------------------------------------------------------
 function validate(body) {
   const errs = {};
   const must = (k, ok, msg) => { if (!ok) errs[k] = msg; };
@@ -26,27 +30,9 @@ function validate(body) {
   return errs;
 }
 
-// ── MongoDB (lazy, cached across invocations) ────────────────────────────────
-let cachedClient = null;
-
-async function getCollection() {
-  if (!process.env.MONGO_URL) return null;
-  try {
-    if (!cachedClient) {
-      const { MongoClient } = await import('mongodb');
-      const client = new MongoClient(process.env.MONGO_URL, { maxPoolSize: 5 });
-      await client.connect();
-      cachedClient = client;
-    }
-    const db = cachedClient.db(process.env.DB_NAME || 'jma_motor_service');
-    return db.collection('service_requests');
-  } catch (e) {
-    console.warn('[service-requests] MongoDB unavailable, falling back to log-only:', e?.message || e);
-    return null;
-  }
-}
-
-// ── Email (Resend, best-effort) ─────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Email (Resend, best-effort, never throws to the caller)
+// ---------------------------------------------------------------------------
 async function sendEmail(doc) {
   if (!process.env.RESEND_API_KEY) return false;
   try {
@@ -55,13 +41,14 @@ async function sendEmail(doc) {
 
     const rows = [
       ['Request ID', doc.id],
-      ['Name', doc.name],
+      ['Name', doc.customer_name],
       ['Phone', doc.phone],
-      ['Email', doc.email || '—'],
+      ['Email', doc.email || '\u2014'],
       ['Car (make & model)', doc.car_make_model],
       ['Service needed', doc.service_needed],
-      ['Preferred date', doc.preferred_date || '—'],
-      ['Message', (doc.message || '—').replace(/\n/g, '<br/>')],
+      ['Preferred date', doc.preferred_date || '\u2014'],
+      ['Language', doc.selected_language === 'so' ? 'Af-Soomaali' : 'English'],
+      ['Message', (doc.message || '\u2014').replace(/\n/g, '<br/>')],
     ];
     const bodyRows = rows
       .map(([k, v]) => `<tr>
@@ -87,7 +74,7 @@ async function sendEmail(doc) {
     const params = {
       from: process.env.SENDER_EMAIL || 'onboarding@resend.dev',
       to: [process.env.BUSINESS_EMAIL || 'info@jmamotorservice.ie'],
-      subject: `New service request — ${doc.name} (${doc.car_make_model})`,
+      subject: `New service request \u2014 ${doc.customer_name} (${doc.car_make_model})`,
       html,
     };
     if (doc.email) params.reply_to = doc.email;
@@ -100,7 +87,9 @@ async function sendEmail(doc) {
   }
 }
 
-// ── POST /api/service-requests ──────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// POST /api/service-requests — create a new booking
+// ---------------------------------------------------------------------------
 export async function POST(request) {
   let body;
   try {
@@ -111,75 +100,93 @@ export async function POST(request) {
 
   const errors = validate(body);
   if (Object.keys(errors).length > 0) {
-    return NextResponse.json(
-      { detail: 'Validation failed.', errors },
-      { status: 422 },
-    );
+    return NextResponse.json({ detail: 'Validation failed.', errors }, { status: 422 });
   }
 
-  const id = crypto.randomUUID();
-  const created_at = new Date().toISOString();
+  const selected_language = VALID_LANGS.has(body.selected_language)
+    ? body.selected_language
+    : 'en';
 
-  const doc = {
-    id,
-    name: body.name.trim(),
+  const payload = {
+    customer_name: body.name.trim(),
     phone: body.phone.trim(),
     email: body.email?.trim() || null,
     car_make_model: body.car_make_model.trim(),
     service_needed: body.service_needed.trim(),
     preferred_date: body.preferred_date || null,
     message: body.message?.trim() || null,
-    email_sent: false,
-    created_at,
-    source: 'website',
+    selected_language,
   };
 
-  // Persist (best effort). Failure is logged but never blocks the response.
-  const col = await getCollection();
-  if (col) {
+  // Persist to Neon (when configured). If not configured, we still succeed and
+  // log the submission to the server console so nothing is silently lost.
+  let saved;
+  if (isDbConfigured()) {
     try {
-      await col.insertOne({ ...doc });
+      saved = await insertServiceRequest(payload);
     } catch (e) {
-      console.warn('[service-requests] Insert failed (request still succeeded):', e?.message || e);
+      console.error('[service-requests] DB insert failed:', e?.message || e);
+      return NextResponse.json(
+        { detail: 'Could not save your request. Please call us directly.' },
+        { status: 500 },
+      );
     }
   } else {
-    console.log('[service-requests] Submission (DB not configured):', {
-      id, name: doc.name, phone: doc.phone, car: doc.car_make_model, service: doc.service_needed,
+    saved = {
+      id: 'local-' + Date.now().toString(36),
+      ...payload,
+      status: 'new',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    console.log('[service-requests] Submission (DB not configured, log-only):', {
+      id: saved.id, name: saved.customer_name, phone: saved.phone, lang: saved.selected_language,
     });
   }
 
-  doc.email_sent = await sendEmail(doc);
-  if (col && doc.email_sent) {
-    try {
-      await col.updateOne({ id }, { $set: { email_sent: true } });
-    } catch {
-      /* ignore */
-    }
+  // Email is best-effort and never blocks the response.
+  const email_sent = await sendEmail(saved);
+  if (email_sent && isDbConfigured()) {
+    await markEmailSent(saved.id);
   }
 
   return NextResponse.json(
     {
-      id,
-      name: doc.name,
-      phone: doc.phone,
-      email: doc.email,
-      car_make_model: doc.car_make_model,
-      service_needed: doc.service_needed,
-      preferred_date: doc.preferred_date,
-      message: doc.message,
-      email_sent: doc.email_sent,
-      created_at,
+      id: saved.id,
+      name: saved.customer_name,
+      phone: saved.phone,
+      email: saved.email,
+      car_make_model: saved.car_make_model,
+      service_needed: saved.service_needed,
+      preferred_date: saved.preferred_date,
+      message: saved.message,
+      selected_language: saved.selected_language,
+      status: saved.status || 'new',
+      email_sent,
+      created_at: saved.created_at,
     },
     { status: 201 },
   );
 }
 
-// ── GET /api/service-requests — lightweight health/probe ────────────────────
+// ---------------------------------------------------------------------------
+// GET /api/service-requests — lightweight health/probe (NOT a list endpoint)
+// ---------------------------------------------------------------------------
 export async function GET() {
+  let db_reachable = false;
+  if (isDbConfigured()) {
+    try {
+      await sql`SELECT 1`;
+      db_reachable = true;
+    } catch {
+      db_reachable = false;
+    }
+  }
   return NextResponse.json({
     status: 'ok',
     service: 'jma-motor-service',
-    db_configured: Boolean(process.env.MONGO_URL),
+    db_configured: isDbConfigured(),
+    db_reachable,
     email_configured: Boolean(process.env.RESEND_API_KEY),
     time: new Date().toISOString(),
   });

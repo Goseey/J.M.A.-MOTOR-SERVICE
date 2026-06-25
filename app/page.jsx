@@ -26,6 +26,7 @@ export default function HomePage() {
       <Footer />
       <FloatingActions />
 
+      {/* Hidden, real-text contact info for SEO + crawlers */}
       <div className="sr-only">
         {BUSINESS.name} — {BUSINESS.address} — Phone: {BUSINESS.phoneDisplay} — Plus code: {BUSINESS.plusCode}
       </div>
