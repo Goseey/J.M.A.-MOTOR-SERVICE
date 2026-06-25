@@ -1,15 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowDownAZ,
+  ArrowLeft,
+  ArrowRight,
   ArrowUpAZ,
   CalendarDays,
   Database,
   ListFilter,
+  RotateCcw,
   Search,
 } from 'lucide-react';
 import AdminShell from '@/components/AdminShell';
+
+const PAGE_SIZE = 10;
 
 const REQUESTS = [
   {
@@ -72,6 +77,96 @@ const REQUESTS = [
     preferredDate: '2026-06-30',
     submittedAt: '2026-06-21T08:45:00Z',
   },
+  {
+    id: 'REQ-24067',
+    customer: 'Daniel Walsh',
+    phone: '086 200 9911',
+    car: 'Mercedes A-Class, 2021',
+    service: 'Battery check and replacement',
+    status: 'New',
+    preferredDate: '',
+    submittedAt: '2026-06-20T09:20:00Z',
+  },
+  {
+    id: 'REQ-24068',
+    customer: 'Ciara Nolan',
+    phone: '085 677 4100',
+    car: 'Nissan Qashqai, 2018',
+    service: 'Suspension and steering',
+    status: 'Contacted',
+    preferredDate: '2026-06-26',
+    submittedAt: '2026-06-19T11:12:00Z',
+  },
+  {
+    id: 'REQ-24069',
+    customer: 'Brian Lynch',
+    phone: '087 311 2200',
+    car: 'Peugeot 3008, 2017',
+    service: 'Engine maintenance',
+    status: 'Booked',
+    preferredDate: '',
+    submittedAt: '2026-06-18T13:41:00Z',
+  },
+  {
+    id: 'REQ-24070',
+    customer: 'Aoife Brennan',
+    phone: '083 411 5500',
+    car: 'Hyundai i30, 2016',
+    service: 'Oil and filter change',
+    status: 'New',
+    preferredDate: '2026-06-25',
+    submittedAt: '2026-06-17T15:06:00Z',
+  },
+  {
+    id: 'REQ-24071',
+    customer: 'Kevin Reilly',
+    phone: '089 600 7722',
+    car: 'Seat Leon, 2019',
+    service: 'Car diagnostics',
+    status: 'Awaiting customer',
+    preferredDate: '',
+    submittedAt: '2026-06-16T10:18:00Z',
+  },
+  {
+    id: 'REQ-24072',
+    customer: 'Niamh Farrell',
+    phone: '085 902 3001',
+    car: 'Renault Clio, 2015',
+    service: 'General car repairs',
+    status: 'Contacted',
+    preferredDate: '2026-06-24',
+    submittedAt: '2026-06-15T09:55:00Z',
+  },
+  {
+    id: 'REQ-24073',
+    customer: 'Thomas Keane',
+    phone: '087 744 9002',
+    car: 'Mazda 3, 2020',
+    service: 'Pre-NCT check',
+    status: 'Booked',
+    preferredDate: '',
+    submittedAt: '2026-06-14T12:33:00Z',
+  },
+  {
+    id: 'REQ-24074',
+    customer: 'Rachel Duffy',
+    phone: '086 150 4403',
+    car: 'Kia Sportage, 2018',
+    service: 'Brake inspection and repair',
+    status: 'New',
+    preferredDate: '2026-06-23',
+    submittedAt: '2026-06-13T14:47:00Z',
+  },
+  {
+    id: 'REQ-24075',
+    customer: 'Sean Power',
+    phone: '083 500 8114',
+    car: 'Opel Astra, 2014',
+    service: 'Full car service',
+    status: 'Contacted',
+    preferredDate: '',
+    submittedAt: '2026-06-12T08:29:00Z',
+  },
 ];
 
 export default function AdminPage() {
@@ -79,6 +174,7 @@ export default function AdminPage() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
 
   const filteredRequests = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -101,6 +197,34 @@ export default function AdminPage() {
     return result;
   }, [query, sortOrder, dateFrom, dateTo]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / PAGE_SIZE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, sortOrder, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const paginatedRequests = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredRequests.slice(start, start + PAGE_SIZE);
+  }, [filteredRequests, page]);
+
+  const rangeStart = filteredRequests.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = filteredRequests.length === 0 ? 0 : Math.min(page * PAGE_SIZE, filteredRequests.length);
+
+  const resetFilters = () => {
+    setQuery('');
+    setSortOrder('desc');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
   return (
     <AdminShell>
       <section className="bg-ink-950 border-b border-white/10" data-testid="admin-page-shell">
@@ -118,7 +242,7 @@ export default function AdminPage() {
                   Service requests
                 </h1>
                 <p className="mt-4 text-white/65 leading-relaxed max-w-2xl" data-testid="admin-subtext">
-                  Structural placeholder only: search, sort and date filtering are ready,
+                  Structural placeholder only: search, sort, pagination and date filtering are ready,
                   while the real data source will be connected later during the Neon/Postgres phase.
                 </p>
               </div>
@@ -129,7 +253,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_220px_200px_200px] gap-3" data-testid="admin-filters-bar">
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_220px_200px_200px_auto] gap-3" data-testid="admin-filters-bar">
               <SearchField value={query} onChange={setQuery} />
               <SortField value={sortOrder} onChange={setSortOrder} />
               <DateField
@@ -144,6 +268,15 @@ export default function AdminPage() {
                 onChange={setDateTo}
                 testid="admin-date-to"
               />
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-sm border border-white/10 bg-ink-900 text-white/80 hover:text-white hover:border-white/20 hover:bg-ink-800 transition-colors"
+                data-testid="admin-reset-filters"
+              >
+                <RotateCcw className="h-4 w-4 text-gold-300" strokeWidth={1.9} />
+                Reset filters
+              </button>
             </div>
           </div>
         </div>
@@ -153,7 +286,7 @@ export default function AdminPage() {
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10 py-8 sm:py-10">
           <div className="flex items-center justify-between gap-4 mb-5">
             <div className="text-sm text-white/55" data-testid="admin-results-count">
-              Showing <span className="text-white font-semibold">{filteredRequests.length}</span> request{filteredRequests.length === 1 ? '' : 's'}
+              Showing <span className="text-white font-semibold">{filteredRequests.length}</span> client{filteredRequests.length === 1 ? '' : 's'}
             </div>
             <div className="text-sm text-white/45" data-testid="admin-default-sort-note">
               Default order: newest to oldest
@@ -171,9 +304,9 @@ export default function AdminPage() {
               <span>Submitted</span>
             </div>
 
-            {filteredRequests.length > 0 ? (
+            {paginatedRequests.length > 0 ? (
               <div className="divide-y divide-white/10">
-                {filteredRequests.map((request) => (
+                {paginatedRequests.map((request) => (
                   <article
                     key={request.id}
                     className="grid lg:grid-cols-[0.95fr_1.1fr_1.1fr_1.2fr_0.8fr_0.9fr_0.9fr] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
@@ -198,6 +331,42 @@ export default function AdminPage() {
                 </p>
               </div>
             )}
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-5 py-4 border-t border-white/10 bg-white/[0.02]" data-testid="admin-table-footer">
+              <div className="text-sm text-white/55" data-testid="admin-footer-summary">
+                {filteredRequests.length > 0 ? (
+                  <>Showing <span className="text-white font-semibold">{rangeStart}-{rangeEnd}</span> of <span className="text-white font-semibold">{filteredRequests.length}</span> clients</>
+                ) : (
+                  <>Showing <span className="text-white font-semibold">0</span> of <span className="text-white font-semibold">0</span> clients</>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap" data-testid="admin-pagination">
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={page === 1}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/80 hover:text-white hover:border-white/20 hover:bg-ink-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  data-testid="admin-pagination-prev"
+                >
+                  <ArrowLeft className="h-4 w-4" strokeWidth={1.9} /> Prev
+                </button>
+
+                <div className="inline-flex items-center gap-2 px-3 h-10 rounded-sm border border-white/10 bg-ink-900 text-sm text-white/70" data-testid="admin-pagination-state">
+                  Page <span className="text-white font-semibold">{page}</span> of <span className="text-white font-semibold">{totalPages}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                  disabled={page === totalPages || filteredRequests.length === 0}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/80 hover:text-white hover:border-white/20 hover:bg-ink-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  data-testid="admin-pagination-next"
+                >
+                  Next <ArrowRight className="h-4 w-4" strokeWidth={1.9} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
