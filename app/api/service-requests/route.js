@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 
-// Node.js runtime required for the MongoDB / Resend SDKs (Edge runtime can't use them).
+// Node.js runtime required for the Neon / Resend SDKs.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -26,27 +26,76 @@ function validate(body) {
   return errs;
 }
 
-// ── MongoDB (lazy, cached across invocations) ────────────────────────────────
-let cachedClient = null;
+let cachedSql = null;
 
-async function getCollection() {
-  if (!process.env.MONGO_URL) return null;
+async function getSql() {
+  if (!process.env.DATABASE_URL) return null;
   try {
-    if (!cachedClient) {
-      const { MongoClient } = await import('mongodb');
-      const client = new MongoClient(process.env.MONGO_URL, { maxPoolSize: 5 });
-      await client.connect();
-      cachedClient = client;
+    if (!cachedSql) {
+      const { neon } = await import('@neondatabase/serverless');
+      cachedSql = neon(process.env.DATABASE_URL);
     }
-    const db = cachedClient.db(process.env.DB_NAME || 'jma_motor_service');
-    return db.collection('service_requests');
+    return cachedSql;
   } catch (e) {
-    console.warn('[service-requests] MongoDB unavailable, falling back to log-only:', e?.message || e);
+    console.warn('[service-requests] Neon unavailable, falling back to log-only:', e?.message || e);
     return null;
   }
 }
 
-// ── Email (Resend, best-effort) ─────────────────────────────────────────────
+async function saveRequest(doc) {
+  const sql = await getSql();
+  if (!sql) return false;
+
+  try {
+    await sql`
+      insert into service_requests (
+        request_id,
+        name,
+        phone,
+        email,
+        car_make_model,
+        service_needed,
+        preferred_date,
+        message,
+        email_sent,
+        source,
+        created_at
+      ) values (
+        ${doc.id}::uuid,
+        ${doc.name},
+        ${doc.phone},
+        ${doc.email},
+        ${doc.car_make_model},
+        ${doc.service_needed},
+        ${doc.preferred_date},
+        ${doc.message},
+        ${doc.email_sent},
+        ${doc.source},
+        ${doc.created_at}::timestamptz
+      )
+    `;
+    return true;
+  } catch (e) {
+    console.warn('[service-requests] Insert failed (request still succeeded):', e?.message || e);
+    return false;
+  }
+}
+
+async function markEmailSent(id) {
+  const sql = await getSql();
+  if (!sql) return;
+
+  try {
+    await sql`
+      update service_requests
+      set email_sent = true
+      where request_id = ${id}::uuid
+    `;
+  } catch (e) {
+    console.warn('[service-requests] Email flag update failed:', e?.message || e);
+  }
+}
+
 async function sendEmail(doc) {
   if (!process.env.RESEND_API_KEY) return false;
   try {
@@ -100,7 +149,6 @@ async function sendEmail(doc) {
   }
 }
 
-// ── POST /api/service-requests ──────────────────────────────────────────────
 export async function POST(request) {
   let body;
   try {
@@ -134,27 +182,16 @@ export async function POST(request) {
     source: 'website',
   };
 
-  // Persist (best effort). Failure is logged but never blocks the response.
-  const col = await getCollection();
-  if (col) {
-    try {
-      await col.insertOne({ ...doc });
-    } catch (e) {
-      console.warn('[service-requests] Insert failed (request still succeeded):', e?.message || e);
-    }
-  } else {
-    console.log('[service-requests] Submission (DB not configured):', {
+  const saved = await saveRequest(doc);
+  if (!saved) {
+    console.log('[service-requests] Submission (DB not configured or unavailable):', {
       id, name: doc.name, phone: doc.phone, car: doc.car_make_model, service: doc.service_needed,
     });
   }
 
   doc.email_sent = await sendEmail(doc);
-  if (col && doc.email_sent) {
-    try {
-      await col.updateOne({ id }, { $set: { email_sent: true } });
-    } catch {
-      /* ignore */
-    }
+  if (saved && doc.email_sent) {
+    await markEmailSent(id);
   }
 
   return NextResponse.json(
@@ -174,12 +211,11 @@ export async function POST(request) {
   );
 }
 
-// ── GET /api/service-requests — lightweight health/probe ────────────────────
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
     service: 'jma-motor-service',
-    db_configured: Boolean(process.env.MONGO_URL),
+    db_configured: Boolean(process.env.DATABASE_URL),
     email_configured: Boolean(process.env.RESEND_API_KEY),
     time: new Date().toISOString(),
   });
