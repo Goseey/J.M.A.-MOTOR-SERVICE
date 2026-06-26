@@ -132,7 +132,7 @@ export default async function AdminPage({ searchParams }) {
 
 function AdminFilters({ filters, t }) {
   return (
-    <form method="get" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_220px_200px_200px_auto] gap-3" data-testid="admin-filters-bar">
+    <form method="get" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(260px,1fr)_220px_220px_auto] gap-3" data-testid="admin-filters-bar">
       <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
         <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
         <input
@@ -145,12 +145,12 @@ function AdminFilters({ filters, t }) {
         />
       </label>
 
-      <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
+      <label className="flex items-center gap-3 min-h-12 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
         <ListFilter className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
         <select
           name="sort"
           defaultValue={filters.sort}
-          className="w-full bg-transparent border-0 outline-none text-[14px] text-white cursor-pointer"
+          className="w-full min-w-0 bg-transparent border-0 outline-none text-[14px] text-white cursor-pointer"
           data-testid="admin-sort-select"
         >
           <option value="desc" className="bg-ink-900 text-white">{t('admin.filters.newest')}</option>
@@ -166,7 +166,7 @@ function AdminFilters({ filters, t }) {
       <DateField label={t('admin.filters.dateFrom')} name="from" value={filters.from} testid="admin-date-from" />
       <DateField label={t('admin.filters.dateTo')} name="to" value={filters.to} testid="admin-date-to" />
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <button
           type="submit"
           className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-sm bg-gold-400 hover:bg-gold-300 text-ink-950 font-semibold transition-colors shadow-gold"
@@ -189,7 +189,7 @@ function AdminFilters({ filters, t }) {
 
 function DateField({ label, name, value, testid }) {
   return (
-    <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid={testid}>
+    <label className="flex items-center gap-3 min-h-12 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid={testid}>
       <CalendarDays className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
       <div className="min-w-0 w-full">
         <div className="text-[10px] uppercase tracking-widest2 text-white/35">{label}</div>
@@ -216,7 +216,7 @@ function Pagination({ filters, page, totalPages, t }) {
         <ArrowLeft className="h-4 w-4" strokeWidth={1.9} /> {t('admin.pagination.prev')}
       </PageLink>
 
-      <div className="inline-flex items-center gap-2 px-3 h-10 rounded-sm border border-white/10 bg-ink-900 text-sm text-white/70" data-testid="admin-pagination-state">
+      <div className="inline-flex items-center gap-2 px-3 min-h-10 rounded-sm border border-white/10 bg-ink-900 text-sm text-white/70" data-testid="admin-pagination-state">
         {t('admin.pagination.page')} <span className="text-white font-semibold">{page}</span> {t('admin.pagination.of')} <span className="text-white font-semibold">{totalPages}</span>
       </div>
 
@@ -252,18 +252,18 @@ function PageLink({ href, disabled, children, testid }) {
 function StatusBadge({ dbConfigured, dbReachable, t }) {
   if (!dbConfigured) {
     return (
-      <div className="inline-flex items-center gap-3 px-4 py-3 rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-100" data-testid="admin-db-note">
+      <div className="inline-flex max-w-full items-start gap-3 px-4 py-3 rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-100" data-testid="admin-db-note">
         <Database className="h-4 w-4 text-gold-300" strokeWidth={1.8} />
-        <span className="text-[13px] leading-relaxed">{t('admin.db.notConfigured')}</span>
+        <span className="text-[13px] leading-relaxed break-words">{t('admin.db.notConfigured')}</span>
       </div>
     );
   }
 
   if (!dbReachable) {
     return (
-      <div className="inline-flex items-center gap-3 px-4 py-3 rounded-sm border border-amber-400/20 bg-amber-400/10 text-amber-100" data-testid="admin-db-note">
+      <div className="inline-flex max-w-full items-start gap-3 px-4 py-3 rounded-sm border border-amber-400/20 bg-amber-400/10 text-amber-100" data-testid="admin-db-note">
         <Database className="h-4 w-4 text-amber-300" strokeWidth={1.8} />
-        <span className="text-[13px] leading-relaxed">{t('admin.db.notReachable')}</span>
+        <span className="text-[13px] leading-relaxed break-words">{t('admin.db.notReachable')}</span>
       </div>
     );
   }
@@ -271,7 +271,7 @@ function StatusBadge({ dbConfigured, dbReachable, t }) {
   return (
     <div className="inline-flex items-center gap-3 px-4 py-3 rounded-sm border border-emerald-400/20 bg-emerald-400/10 text-emerald-100" data-testid="admin-db-note">
       <Database className="h-4 w-4 text-emerald-300" strokeWidth={1.8} />
-      <span className="text-[13px] leading-relaxed">{t('admin.db.connected')}</span>
+      <span className="text-[13px] leading-relaxed break-words">{t('admin.db.connected')}</span>
     </div>
   );
 }
