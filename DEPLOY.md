@@ -31,6 +31,8 @@ environment to **Production**, and optionally also **Preview** for branch deploy
 | `SENDER_EMAIL` | Email notifications | `onboarding@resend.dev` (test) or `noreply@jmamotorservice.ie` (verified domain) |
 | `BUSINESS_EMAIL` | Email notifications | The inbox that receives notifications |
 | `REPLY_TO_EMAIL` | Customer confirmations | Optional reply-to address shown on outgoing customer emails (falls back to `BUSINESS_EMAIL`) |
+| `ADMIN_PASSWORD` | Protecting `/admin` | Strong password required for admin login |
+| `ADMIN_SECRET` | Protecting `/admin` | Long random secret used to sign the admin session cookie |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Showing WhatsApp button | International format, no `+` (e.g. `353852246411`) |
 
 After adding env vars: **Deployments → ⋯ → Redeploy** (envs only apply to new deploys).
@@ -43,6 +45,8 @@ RESEND_API_KEY=
 SENDER_EMAIL=onboarding@resend.dev
 BUSINESS_EMAIL=info@jmamotorservice.ie
 REPLY_TO_EMAIL=info@jmamotorservice.ie
+ADMIN_PASSWORD=choose-a-strong-password
+ADMIN_SECRET=choose-a-long-random-secret
 NEXT_PUBLIC_WHATSAPP_NUMBER=353852246411
 ```
 

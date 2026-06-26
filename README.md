@@ -129,6 +129,8 @@ All optional for the first deploy.
 | `SENDER_EMAIL`                 | Server   | Verified sender (default `onboarding@resend.dev`) |
 | `BUSINESS_EMAIL`               | Server   | Inbox that receives form notifications |
 | `REPLY_TO_EMAIL`               | Server   | Optional reply-to address used in customer confirmations (falls back to `BUSINESS_EMAIL`) |
+| `ADMIN_PASSWORD`               | Server   | Required to access `/admin` once admin protection is enabled |
+| `ADMIN_SECRET`                 | Server   | Extra secret used to sign the admin session cookie |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`  | Browser  | International, no `+`. Empty → WhatsApp buttons hidden |
 
 See [`.env.example`](./.env.example) for a template and [`db/README.md`](./db/README.md) for Neon setup.
@@ -204,6 +206,27 @@ Base URL: `/api` (same-origin).
 ```
 
 Validation errors return **422** with a field-level `errors` map.
+
+---
+
+## 🔒 Admin protection
+
+The `/admin` page is protected by a server-side password gate.
+
+Set these environment variables before using it in production:
+
+```bash
+ADMIN_PASSWORD=choose-a-strong-password
+ADMIN_SECRET=choose-a-long-random-secret
+```
+
+How it works:
+- unauthenticated visitors to `/admin` are redirected to `/admin/login`
+- the password is checked on the server
+- successful login creates an **HttpOnly** signed session cookie
+- `/admin/logout` clears that cookie
+
+If `ADMIN_PASSWORD` is missing, the login screen will show a configuration warning instead of letting anyone in.
 
 ---
 

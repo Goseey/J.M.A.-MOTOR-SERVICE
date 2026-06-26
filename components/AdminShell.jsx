@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Shield, Phone } from 'lucide-react';
+import { Menu, X, Shield, Phone, LogOut } from 'lucide-react';
 import Logo from '@/components/Logo';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import AdminLanguageSync from '@/components/AdminLanguageSync';
@@ -57,6 +57,14 @@ export default function AdminShell({ children }) {
           <div className="flex items-center gap-2">
             <LanguageSwitcher size="sm" className="hidden sm:inline-flex" />
             <a
+              href="/admin/logout"
+              data-testid="admin-header-logout"
+              className="hidden sm:inline-flex items-center gap-2 px-4 h-10 border border-white/10 bg-ink-900 text-white/80 hover:text-white hover:border-white/20 hover:bg-ink-800 text-[13px] font-semibold tracking-wide rounded-sm transition-colors"
+            >
+              <LogOut className="h-4 w-4 text-gold-300" strokeWidth={2} />
+              <span>{t('admin.logout')}</span>
+            </a>
+            <a
               href={links.call}
               data-testid="admin-header-call"
               className="hidden sm:inline-flex items-center gap-2 px-4 lg:px-5 h-10 bg-gold-400 hover:bg-gold-300 text-ink-950 text-[13px] font-semibold tracking-wide rounded-sm transition-colors shadow-gold"
@@ -101,6 +109,14 @@ export default function AdminShell({ children }) {
               </a>
             ))}
             <div className="pt-4 flex flex-col gap-2">
+              <a
+                href="/admin/logout"
+                onClick={close}
+                data-testid="admin-mobile-logout"
+                className="inline-flex items-center justify-center gap-2 h-12 border border-white/15 hover:border-white/30 hover:bg-white/5 text-white font-semibold tracking-wide rounded-sm"
+              >
+                <LogOut className="h-4 w-4 text-gold-300" /> {t('admin.logout')}
+              </a>
               <a
                 href={links.call}
                 onClick={close}
