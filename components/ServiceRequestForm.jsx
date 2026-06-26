@@ -18,7 +18,7 @@ function makeValidator(t) {
     const errors = {};
     if (form.name.trim().length < 2) errors.name = t('form.validation.name');
     if (form.phone.trim().length < 5) errors.phone = t('form.validation.phone');
-    if (form.email && !EMAIL_RE.test(form.email.trim())) errors.email = t('form.validation.email');
+    if (!EMAIL_RE.test(form.email.trim())) errors.email = t('form.validation.email');
     if (form.car_make_model.trim().length < 1) errors.car_make_model = t('form.validation.car');
     if (form.service_needed.trim().length < 1) errors.service_needed = t('form.validation.service');
     return errors;
@@ -64,7 +64,7 @@ export default function ServiceRequestForm() {
       const payload = {
         name: form.name.trim(),
         phone: form.phone.trim(),
-        email: form.email.trim() || undefined,
+        email: form.email.trim(),
         car_make_model: form.car_make_model.trim(),
         service_needed: form.service_needed.trim(),
         preferred_date: form.preferred_date || undefined,
@@ -139,7 +139,7 @@ export default function ServiceRequestForm() {
               />
             </FormField>
 
-            <FormField label={t('form.fields.email')} hint={t('form.hints.optional')} error={errors.email} testid="form-field-email">
+            <FormField label={t('form.fields.email')} required error={errors.email} testid="form-field-email">
               <input
                 type="email" autoComplete="email" value={form.email} onChange={update('email')}
                 className={inputCls(errors.email)} placeholder={t('form.placeholders.email')}
@@ -268,6 +268,7 @@ function SuccessCard({ t, submittedName, onReset }) {
       </h3>
       <p className="mt-3 text-white/65 leading-relaxed">
         <strong className="text-white">{t('form.success.confirmation')}</strong>
+        <br className="hidden sm:block" /> {t('form.success.emailNotice')}
         <br className="hidden sm:block" /> {t('form.success.notAutomatic')}
       </p>
       <button

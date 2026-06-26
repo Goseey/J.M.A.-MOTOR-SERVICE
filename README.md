@@ -18,7 +18,7 @@
 
 - **Bilingual EN + SO** with a clean pill-style language switcher in the header (active segment is gold), persisted in `localStorage`, `<html lang>` auto-synced.
 - **Cinematic hero with a 4-slide carousel** (auto-advance, manual arrows + dots, keyboard support, reduced-motion friendly). Images live in `/public/images/hero-slideshow/` — drop new JPEGs in to replace them, no code changes needed.
-- **Same-origin contact form** → validated → Next.js API route → Neon Postgres (optional). Email via Resend is optional and best-effort. Service preselect: clicking "Ask about this service" on any card jumps to the form and fills the dropdown.
+- **Same-origin contact form** → validated → Next.js API route → Neon Postgres (optional). Email is now required on the form; Resend can notify both the business inbox and the customer with a confirmation email. Service preselect: clicking "Ask about this service" on any card jumps to the form and fills the dropdown.
 - **TikTok** linked from header (icon), mobile menu, footer, and the Contact "Follow us" block.
 - **Real data only** — Google rating shown as the actual aggregate `5.0 / 8 reviews`. No fabricated testimonials.
 - **Mobile-first** — sticky header with burger drawer, floating Call / WhatsApp / Directions cluster on scroll.
@@ -128,6 +128,7 @@ All optional for the first deploy.
 | `RESEND_API_KEY`               | Server   | Resend API key (`re_…`). When empty → email skipped |
 | `SENDER_EMAIL`                 | Server   | Verified sender (default `onboarding@resend.dev`) |
 | `BUSINESS_EMAIL`               | Server   | Inbox that receives form notifications |
+| `REPLY_TO_EMAIL`               | Server   | Optional reply-to address used in customer confirmations (falls back to `BUSINESS_EMAIL`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`  | Browser  | International, no `+`. Empty → WhatsApp buttons hidden |
 
 See [`.env.example`](./.env.example) for a template and [`db/README.md`](./db/README.md) for Neon setup.
@@ -181,7 +182,7 @@ Base URL: `/api` (same-origin).
 {
   "name": "Maxamed Cali",
   "phone": "085 123 4567",
-  "email": "you@example.com",            // optional
+  "email": "you@example.com",
   "car_make_model": "VW Golf 2016",
   "service_needed": "Full car service",
   "preferred_date": "2026-02-15",        // optional

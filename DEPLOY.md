@@ -30,6 +30,7 @@ environment to **Production**, and optionally also **Preview** for branch deploy
 | `RESEND_API_KEY` | Email notifications | Resend API key (`re_…`) from https://resend.com |
 | `SENDER_EMAIL` | Email notifications | `onboarding@resend.dev` (test) or `noreply@jmamotorservice.ie` (verified domain) |
 | `BUSINESS_EMAIL` | Email notifications | The inbox that receives notifications |
+| `REPLY_TO_EMAIL` | Customer confirmations | Optional reply-to address shown on outgoing customer emails (falls back to `BUSINESS_EMAIL`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Showing WhatsApp button | International format, no `+` (e.g. `353852246411`) |
 
 After adding env vars: **Deployments → ⋯ → Redeploy** (envs only apply to new deploys).
@@ -41,6 +42,7 @@ DATABASE_URL=postgresql://USER:PASS@ep-xxxx-...neon.tech/neondb?sslmode=require
 RESEND_API_KEY=
 SENDER_EMAIL=onboarding@resend.dev
 BUSINESS_EMAIL=info@jmamotorservice.ie
+REPLY_TO_EMAIL=info@jmamotorservice.ie
 NEXT_PUBLIC_WHATSAPP_NUMBER=353852246411
 ```
 

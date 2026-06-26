@@ -16,10 +16,8 @@ function validate(body) {
        'Please enter your full name.');
   must('phone', typeof body?.phone === 'string' && body.phone.trim().length >= 5,
        'Please enter a contact phone number.');
-  if (body?.email) {
-    must('email', typeof body.email === 'string' && EMAIL_RE.test(body.email.trim()),
-         'Please enter a valid email address.');
-  }
+  must('email', typeof body?.email === 'string' && EMAIL_RE.test(body.email.trim()),
+       'Please enter a valid email address.');
   must('car_make_model', typeof body?.car_make_model === 'string' && body.car_make_model.trim().length > 0,
        'Please tell us the car make and model.');
   must('service_needed', typeof body?.service_needed === 'string' && body.service_needed.trim().length > 0,
@@ -27,53 +25,185 @@ function validate(body) {
   return errs;
 }
 
-async function sendEmail(doc) {
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('en-IE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value));
+  } catch {
+    return String(value);
+  }
+}
+
+function getCustomerEmailCopy(doc) {
+  const isSomali = doc.selected_language === 'so';
+
+  if (isSomali) {
+    return {
+      subject: 'J.M.A. Motor Service — waxaan helnay codsigaaga',
+      heading: 'Waxaan helnay codsigaaga adeegga',
+      intro: 'Waad ku mahadsan tahay la xiriirka J.M.A. Motor Service. Waxaan helnay codsigaaga waxaanan kuugu soo diri doonaa xaqiijin iimaylkan.',
+      summaryTitle: 'Faahfaahinta codsigaaga',
+      nextTitle: 'Maxaa xiga?',
+      nextText: 'Kooxdayadu waxay dib u eegi doontaa codsigaaga waxayna kula soo xiriiri doontaa si ay u xaqiijiyaan helitaanka iyo tallaabada xigta. Ballanta si toos ah looma xaqiijin marka foomka la diro.',
+      footer: 'Haddii arrintu degdeg tahay, fadlan si toos ah noogu soo wac.',
+      labels: {
+        requestId: 'Aqoonsiga codsiga',
+        name: 'Magac',
+        phone: 'Telefoon',
+        email: 'Iimayl',
+        car: 'Baabuur',
+        service: 'Adeeg',
+        preferredDate: 'Taariikhda la rabo',
+        message: 'Fariin',
+      },
+    };
+  }
+
+  return {
+    subject: 'J.M.A. Motor Service — we received your request',
+    heading: 'We received your service request',
+    intro: 'Thanks for contacting J.M.A. Motor Service. We have received your request and will send confirmation to this email address.',
+    summaryTitle: 'Your request details',
+    nextTitle: 'What happens next?',
+    nextText: 'Our team will review your request and contact you to confirm availability and the next step. Your booking is not confirmed automatically when the form is submitted.',
+    footer: 'If your issue is urgent, please call us directly.',
+    labels: {
+      requestId: 'Request ID',
+      name: 'Name',
+      phone: 'Phone',
+      email: 'Email',
+      car: 'Car',
+      service: 'Service',
+      preferredDate: 'Preferred date',
+      message: 'Message',
+    },
+  };
+}
+
+function makeAdminEmailHtml(doc) {
+  const rows = [
+    ['Request ID', doc.id],
+    ['Name', doc.customer_name],
+    ['Phone', doc.phone],
+    ['Email', doc.email],
+    ['Car (make & model)', doc.car_make_model],
+    ['Service needed', doc.service_needed],
+    ['Preferred date', formatDate(doc.preferred_date)],
+    ['Language', doc.selected_language === 'so' ? 'Af-Soomaali' : 'English'],
+    ['Message', doc.message ? escapeHtml(doc.message).replace(/\n/g, '<br/>') : '—'],
+  ];
+
+  const bodyRows = rows
+    .map(([k, v]) => `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${escapeHtml(k)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${v || '—'}</td>
+    </tr>`)
+    .join('');
+
+  return `<div style="background:#050505;padding:32px 0;font-family:Arial,sans-serif;">
+    <table role="presentation" width="600" align="center" cellspacing="0" cellpadding="0" style="background:#121212;border:1px solid #2a2a2a;border-radius:4px;">
+      <tr><td style="padding:24px 24px 0 24px;">
+        <div style="color:#D4AF37;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;">J.M.A. Motor Service</div>
+        <h1 style="color:#ffffff;font-size:22px;margin:8px 0 4px 0;">New service request</h1>
+        <p style="color:#a3a3a3;font-size:13px;margin:0 0 16px 0;">A new customer has submitted a service request through the website.</p>
+      </td></tr>
+      <tr><td style="padding:0 12px 24px 12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #2a2a2a;">${bodyRows}</table>
+        <p style="color:#666;font-size:11px;margin-top:16px;text-align:center;">Sent automatically from jmamotorservice.ie</p>
+      </td></tr>
+    </table>
+  </div>`;
+}
+
+function makeCustomerEmailHtml(doc) {
+  const copy = getCustomerEmailCopy(doc);
+  const rows = [
+    [copy.labels.requestId, doc.id],
+    [copy.labels.name, doc.customer_name],
+    [copy.labels.phone, doc.phone],
+    [copy.labels.email, doc.email],
+    [copy.labels.car, doc.car_make_model],
+    [copy.labels.service, doc.service_needed],
+    [copy.labels.preferredDate, formatDate(doc.preferred_date)],
+    [copy.labels.message, doc.message ? escapeHtml(doc.message).replace(/\n/g, '<br/>') : '—'],
+  ];
+
+  const bodyRows = rows
+    .map(([k, v]) => `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${escapeHtml(k)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${v || '—'}</td>
+    </tr>`)
+    .join('');
+
+  return {
+    subject: copy.subject,
+    html: `<div style="background:#050505;padding:32px 0;font-family:Arial,sans-serif;">
+      <table role="presentation" width="600" align="center" cellspacing="0" cellpadding="0" style="background:#121212;border:1px solid #2a2a2a;border-radius:4px;">
+        <tr><td style="padding:24px 24px 0 24px;">
+          <div style="color:#D4AF37;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;">J.M.A. Motor Service</div>
+          <h1 style="color:#ffffff;font-size:22px;margin:8px 0 6px 0;">${escapeHtml(copy.heading)}</h1>
+          <p style="color:#a3a3a3;font-size:14px;line-height:1.6;margin:0 0 18px 0;">${escapeHtml(copy.intro)}</p>
+        </td></tr>
+        <tr><td style="padding:0 12px 0 12px;">
+          <div style="padding:0 12px 12px 12px;color:#D4AF37;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;">${escapeHtml(copy.summaryTitle)}</div>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #2a2a2a;">${bodyRows}</table>
+        </td></tr>
+        <tr><td style="padding:22px 24px 24px 24px;">
+          <div style="color:#ffffff;font-size:14px;font-weight:700;margin-bottom:8px;">${escapeHtml(copy.nextTitle)}</div>
+          <p style="color:#a3a3a3;font-size:14px;line-height:1.65;margin:0 0 12px 0;">${escapeHtml(copy.nextText)}</p>
+          <p style="color:#d1d5db;font-size:13px;line-height:1.6;margin:0;">${escapeHtml(copy.footer)}</p>
+        </td></tr>
+      </table>
+    </div>`,
+  };
+}
+
+async function sendEmails(doc) {
   if (!process.env.RESEND_API_KEY) return false;
   try {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const from = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+    const businessInbox = process.env.BUSINESS_EMAIL || 'info@jmamotorservice.ie';
+    const customerEmail = doc.email?.trim();
+    const customerMail = makeCustomerEmailHtml(doc);
 
-    const rows = [
-      ['Request ID', doc.id],
-      ['Name', doc.customer_name],
-      ['Phone', doc.phone],
-      ['Email', doc.email || '—'],
-      ['Car (make & model)', doc.car_make_model],
-      ['Service needed', doc.service_needed],
-      ['Preferred date', doc.preferred_date || '—'],
-      ['Language', doc.selected_language === 'so' ? 'Af-Soomaali' : 'English'],
-      ['Message', (doc.message || '—').replace(/\n/g, '<br/>')],
+    const sends = [
+      resend.emails.send({
+        from,
+        to: [businessInbox],
+        subject: `New service request — ${doc.customer_name} (${doc.car_make_model})`,
+        html: makeAdminEmailHtml(doc),
+        reply_to: customerEmail,
+      }),
     ];
-    const bodyRows = rows
-      .map(([k, v]) => `<tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${k}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${v}</td>
-      </tr>`)
-      .join('');
 
-    const html = `<div style="background:#050505;padding:32px 0;font-family:Arial,sans-serif;">
-      <table role="presentation" width="600" align="center" cellspacing="0" cellpadding="0" style="background:#121212;border:1px solid #2a2a2a;border-radius:4px;">
-        <tr><td style="padding:24px 24px 0 24px;">
-          <div style="color:#D4AF37;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;">J.M.A. Motor Service</div>
-          <h1 style="color:#ffffff;font-size:22px;margin:8px 0 4px 0;">New service request</h1>
-          <p style="color:#a3a3a3;font-size:13px;margin:0 0 16px 0;">A new customer has submitted a service request through the website.</p>
-        </td></tr>
-        <tr><td style="padding:0 12px 24px 12px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #2a2a2a;">${bodyRows}</table>
-          <p style="color:#666;font-size:11px;margin-top:16px;text-align:center;">Sent automatically from jmamotorservice.ie</p>
-        </td></tr>
-      </table>
-    </div>`;
+    if (customerEmail) {
+      sends.push(
+        resend.emails.send({
+          from,
+          to: [customerEmail],
+          subject: customerMail.subject,
+          html: customerMail.html,
+          reply_to: businessInbox,
+        }),
+      );
+    }
 
-    const params = {
-      from: process.env.SENDER_EMAIL || 'onboarding@resend.dev',
-      to: [process.env.BUSINESS_EMAIL || 'info@jmamotorservice.ie'],
-      subject: `New service request — ${doc.customer_name} (${doc.car_make_model})`,
-      html,
-    };
-    if (doc.email) params.reply_to = doc.email;
-
-    await resend.emails.send(params);
+    await Promise.all(sends);
     return true;
   } catch (e) {
     console.warn('[service-requests] Email send failed (request still succeeded):', e?.message || e);
