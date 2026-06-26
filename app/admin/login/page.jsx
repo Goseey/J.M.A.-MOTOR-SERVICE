@@ -1,4 +1,5 @@
-import { LockKeyhole, ShieldAlert } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, LockKeyhole, ShieldAlert } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { makeT } from '@/lib/i18n';
@@ -42,7 +43,17 @@ export default async function AdminLoginPage({ searchParams }) {
       </div>
 
       <main className="relative z-10 min-h-screen flex items-center justify-center px-5 py-16 sm:px-6 lg:px-10">
-        <div className="w-full max-w-md border border-white/10 bg-ink-900/95 backdrop-blur-xl rounded-sm shadow-ring p-7 sm:p-9">
+        <div className="w-full max-w-md">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 mb-4 px-3 h-10 rounded-sm border border-white/10 bg-ink-900/80 text-white/75 hover:text-white hover:border-white/20 hover:bg-ink-800 transition-colors"
+            data-testid="admin-login-back-home"
+          >
+            <ArrowLeft className="h-4 w-4 text-gold-300" strokeWidth={2} />
+            <span className="text-[13px] font-semibold tracking-wide">{t('admin.login.backHome')}</span>
+          </Link>
+
+          <div className="border border-white/10 bg-ink-900/95 backdrop-blur-xl rounded-sm shadow-ring p-7 sm:p-9">
           <div className="flex items-center gap-3 mb-5">
             <div className="inline-flex items-center justify-center h-11 w-11 rounded-sm border border-gold-400/25 bg-gold-400/10 text-gold-300">
               <LockKeyhole className="h-5 w-5" strokeWidth={1.9} />
@@ -103,6 +114,7 @@ export default async function AdminLoginPage({ searchParams }) {
               </button>
             </form>
           )}
+          </div>
         </div>
       </main>
     </div>
