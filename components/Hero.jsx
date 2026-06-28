@@ -111,7 +111,7 @@ export default function Hero() {
             <a
               href="#service-request"
               data-testid="hero-request-service"
-              className="inline-flex items-center gap-2 h-12 px-6 text-white/85 hover:text-white font-medium tracking-wide group"
+              className="inline-flex items-center gap-2 h-12 px-6 border border-white/20 hover:border-gold-400/50 hover:bg-white/5 text-white font-semibold tracking-wide rounded-sm transition-colors group"
             >
               <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" strokeWidth={2} />
               {t('common.requestService')}
