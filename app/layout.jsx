@@ -61,11 +61,6 @@ const JSON_LD = {
     postalCode: 'D02 VK57',
     addressCountry: 'IE',
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '5.0',
-    reviewCount: '8',
-  },
   areaServed: 'Dublin',
   sameAs: ['https://www.tiktok.com/@j.m.a.motor.servi7'],
 };

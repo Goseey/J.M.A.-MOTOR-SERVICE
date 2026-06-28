@@ -43,27 +43,18 @@ export default function RatingCard() {
         </span>
       </header>
 
-      <div className="mt-10 flex items-end gap-5 flex-wrap">
-        <div
-          className="font-display text-[88px] sm:text-[112px] font-extrabold leading-none text-metal-gold tracking-tighter"
-          data-testid="rating-value"
-        >
-          5.0
+      <div className="mt-10">
+        <div className="flex gap-1.5" aria-hidden="true">
+          {STAR_KEYS.map((k) => (
+            <Star key={k} className="h-7 w-7 fill-gold-400 text-gold-400" strokeWidth={1.5} />
+          ))}
         </div>
-        <div className="pb-3">
-          <div className="flex gap-1" aria-label="5 out of 5 stars">
-            {STAR_KEYS.map((k) => (
-              <Star key={k} className="h-6 w-6 fill-gold-400 text-gold-400" strokeWidth={1.5} />
-            ))}
-          </div>
-          <p className="mt-3 text-[14px] text-white/75">
-            {t('reviews.basedOn')}{' '}
-            <span className="font-semibold text-white" data-testid="review-count">
-              {BUSINESS.reviewCount} {t('reviews.reviewsLabel')}
-            </span>
-          </p>
-          <p className="text-[12px] text-white/45 mt-1">{t('reviews.source')}</p>
-        </div>
+        <p className="mt-5 font-display text-xl sm:text-2xl font-semibold text-white leading-snug">
+          {t('reviews.invite')}
+        </p>
+        <p className="mt-3 text-[14px] text-white/65 leading-relaxed max-w-md">
+          {t('reviews.inviteSub')}
+        </p>
       </div>
 
       <div className="mt-8 hairline" />
