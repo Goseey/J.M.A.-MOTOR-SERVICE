@@ -9,6 +9,19 @@
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+CREATE TABLE IF NOT EXISTS admin_users (
+  id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  email               TEXT         NOT NULL UNIQUE,
+  password_hash       TEXT         NOT NULL,
+  display_name        TEXT,
+  is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS admin_users_email_lower_idx
+  ON admin_users ((lower(email)));
+
 CREATE TABLE IF NOT EXISTS service_requests (
   id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_name       TEXT         NOT NULL,
@@ -47,7 +60,7 @@ CREATE INDEX IF NOT EXISTS service_requests_status_idx
 CREATE INDEX IF NOT EXISTS service_requests_phone_idx
   ON service_requests (phone);
 
-CREATE OR REPLACE FUNCTION service_requests_set_updated_at()
+CREATE OR REPLACE FUNCTION set_updated_at_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -55,8 +68,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS admin_users_updated_at_trg ON admin_users;
+CREATE TRIGGER admin_users_updated_at_trg
+  BEFORE UPDATE ON admin_users
+  FOR EACH ROW
+  EXECUTE FUNCTION set_updated_at_timestamp();
+
 DROP TRIGGER IF EXISTS service_requests_updated_at_trg ON service_requests;
 CREATE TRIGGER service_requests_updated_at_trg
   BEFORE UPDATE ON service_requests
   FOR EACH ROW
-  EXECUTE FUNCTION service_requests_set_updated_at();
+  EXECUTE FUNCTION set_updated_at_timestamp();

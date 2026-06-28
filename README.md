@@ -129,8 +129,9 @@ All optional for the first deploy.
 | `SENDER_EMAIL`                 | Server   | Verified sender (default `onboarding@resend.dev`) |
 | `BUSINESS_EMAIL`               | Server   | Inbox that receives form notifications |
 | `REPLY_TO_EMAIL`               | Server   | Optional reply-to address used in customer confirmations (falls back to `BUSINESS_EMAIL`) |
-| `ADMIN_PASSWORD`               | Server   | Required to access `/admin` once admin protection is enabled |
-| `ADMIN_SECRET`                 | Server   | Extra secret used to sign the admin session cookie |
+| `ADMIN_SECRET`                 | Server   | Secret used to sign the admin session cookie |
+| `ADMIN_BOOTSTRAP_EMAIL`        | Server   | Email for the first seeded admin account (optional helper for first setup) |
+| `ADMIN_BOOTSTRAP_PASSWORD`     | Server   | Password for the first seeded admin account (optional helper for first setup) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`  | Browser  | International, no `+`. Empty → WhatsApp buttons hidden |
 
 See [`.env.example`](./.env.example) for a template and [`db/README.md`](./db/README.md) for Neon setup.

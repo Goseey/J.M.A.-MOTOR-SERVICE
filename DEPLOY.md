@@ -31,8 +31,9 @@ environment to **Production**, and optionally also **Preview** for branch deploy
 | `SENDER_EMAIL` | Email notifications | `onboarding@resend.dev` (test) or `noreply@jmamotorservice.ie` (verified domain) |
 | `BUSINESS_EMAIL` | Email notifications | The inbox that receives notifications |
 | `REPLY_TO_EMAIL` | Customer confirmations | Optional reply-to address shown on outgoing customer emails (falls back to `BUSINESS_EMAIL`) |
-| `ADMIN_PASSWORD` | Protecting `/admin` | Strong password required for admin login |
 | `ADMIN_SECRET` | Protecting `/admin` | Long random secret used to sign the admin session cookie |
+| `ADMIN_BOOTSTRAP_EMAIL` | First admin setup | Email for the first admin account you will insert into `admin_users` |
+| `ADMIN_BOOTSTRAP_PASSWORD` | First admin setup | Plain-text password you will hash before inserting into `admin_users` |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Showing WhatsApp button | International format, no `+` (e.g. `353852246411`) |
 
 After adding env vars: **Deployments → ⋯ → Redeploy** (envs only apply to new deploys).
@@ -45,8 +46,9 @@ RESEND_API_KEY=
 SENDER_EMAIL=onboarding@resend.dev
 BUSINESS_EMAIL=info@jmamotorservice.ie
 REPLY_TO_EMAIL=info@jmamotorservice.ie
-ADMIN_PASSWORD=choose-a-strong-password
 ADMIN_SECRET=choose-a-long-random-secret
+ADMIN_BOOTSTRAP_EMAIL=admin@example.com
+ADMIN_BOOTSTRAP_PASSWORD=choose-a-strong-password
 NEXT_PUBLIC_WHATSAPP_NUMBER=353852246411
 ```
 
@@ -81,7 +83,24 @@ Follow [`db/README.md`](./db/README.md). Total time ≈ 3 minutes:
 1. Project Settings → Environment Variables → add each row from the table above.
 2. Deployments → click the latest deploy → ⋯ → **Redeploy**.
 
-### 5. Verify
+### 5. Create at least one admin user
+
+Generate a bcrypt hash locally:
+
+```bash
+node -e "const { hashSync } = require('bcryptjs'); console.log(hashSync('ChangeMe123!', 12));"
+```
+
+Then insert it in Neon:
+
+```sql
+INSERT INTO admin_users (email, password_hash, display_name)
+VALUES ('admin@example.com', '$2a$12$replace_with_generated_hash', 'Main Admin');
+```
+
+Repeat for any additional admins, then use that email/password on `/admin/login`.
+
+6. Verify
 
 ```bash
 # Health
