@@ -57,6 +57,10 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
         },
+        'pulse-slow': {
+          '0%, 100%': { boxShadow: '0 12px 34px -8px rgba(212,175,55,0.8), 0 0 0 0 rgba(212,175,55,0.55)' },
+          '50%': { boxShadow: '0 12px 34px -8px rgba(212,175,55,0.8), 0 0 0 12px rgba(212,175,55,0)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 0.8s ease-out both',
@@ -64,6 +68,7 @@ module.exports = {
         sweep: 'sweep 8s linear infinite',
         headlight: 'headlight 4s ease-in-out infinite',
         float: 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 2.4s ease-in-out infinite',
       },
     },
   },
