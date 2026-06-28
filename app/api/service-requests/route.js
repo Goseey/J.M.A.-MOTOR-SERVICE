@@ -263,7 +263,7 @@ export async function POST(request) {
     });
   }
 
-  const email_sent = await sendEmail(saved);
+  const email_sent = await sendEmails(saved);
   if (email_sent && isDbConfigured()) {
     await markEmailSent(saved.id);
   }
