@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Phone, MapPin, Send, Star, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Phone, MapPin, Send, Wrench, ShieldCheck, ChevronDown } from 'lucide-react';
 import { BUSINESS, links } from '@/lib/business';
 import { useApp } from '@/contexts/AppContext';
 import HeroSlideshow from './HeroSlideshow';
 
 const BADGE_KEYS = [
-  { icon: Star, tKey: 'hero.badges.rating', testid: 'badge-rating' },
-  { icon: ShieldCheck, tKey: 'hero.badges.reviews', testid: 'badge-reviews' },
+  { icon: ShieldCheck, tKey: 'hero.badges.rating', testid: 'badge-rating' },
+  { icon: Wrench, tKey: 'hero.badges.reviews', testid: 'badge-reviews' },
   { icon: MapPin, tKey: 'hero.badges.location', testid: 'badge-location' },
   { icon: Phone, tKey: 'hero.badges.phone', testid: 'badge-phone' },
 ];
