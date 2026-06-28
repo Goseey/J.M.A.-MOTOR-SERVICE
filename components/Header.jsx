@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, Settings } from 'lucide-react';
 import Logo from './Logo';
 import LanguageSwitcher from './LanguageSwitcher';
 import TikTokIcon from './icons/TikTokIcon';
@@ -52,6 +52,15 @@ export default function Header() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
+          <a
+            href="/admin/login"
+            aria-label="Admin panel"
+            data-testid="header-admin-link"
+            className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-300 hover:bg-gold-400 hover:text-ink-950 hover:border-gold-300 transition-all duration-300 shadow-[0_0_0_1px_rgba(212,175,55,0.08)]"
+            title="Admin panel"
+          >
+            <Settings className="h-4 w-4" strokeWidth={1.9} />
+          </a>
           <a
             href={links.tiktok}
             target="_blank"
@@ -123,6 +132,15 @@ export default function Header() {
               className="inline-flex items-center justify-center gap-2 h-12 border border-white/15 hover:border-white/30 hover:bg-white/5 text-white font-semibold tracking-wide rounded-sm"
             >
               <TikTokIcon className="h-4 w-4" /> TikTok
+            </a>
+            <a
+              href="/admin/login"
+              onClick={close}
+              aria-label="Admin panel"
+              data-testid="mobile-admin-link"
+              className="inline-flex items-center justify-center gap-2 h-12 border border-gold-400/20 bg-gold-400/10 text-gold-200 hover:bg-gold-400 hover:text-ink-950 hover:border-gold-300 font-semibold tracking-wide rounded-sm transition-all duration-300"
+            >
+              <Settings className="h-4 w-4" strokeWidth={1.9} /> Admin Panel
             </a>
           </div>
         </div>
