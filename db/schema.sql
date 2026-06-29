@@ -43,7 +43,7 @@ ALTER TABLE service_requests
   DROP CONSTRAINT IF EXISTS service_requests_status_chk;
 ALTER TABLE service_requests
   ADD CONSTRAINT service_requests_status_chk
-  CHECK (status IN ('new', 'contacted', 'confirmed', 'completed', 'cancelled'));
+  CHECK (status IN ('new', 'stale', 'contacted', 'confirmed', 'completed', 'cancelled'));
 
 ALTER TABLE service_requests
   DROP CONSTRAINT IF EXISTS service_requests_lang_chk;

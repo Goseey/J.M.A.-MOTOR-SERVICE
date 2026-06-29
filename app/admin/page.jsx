@@ -310,6 +310,7 @@ function StatusCell({ status, t }) {
   const normalized = String(status || 'new').toLowerCase();
   const tone = {
     new: 'bg-sky-500/10 border-sky-400/30 text-sky-200',
+    stale: 'bg-zinc-500/10 border-zinc-400/30 text-zinc-200',
     contacted: 'bg-amber-500/10 border-amber-400/30 text-amber-200',
     confirmed: 'bg-emerald-500/10 border-emerald-400/30 text-emerald-200',
     completed: 'bg-emerald-500/10 border-emerald-400/30 text-emerald-200',
