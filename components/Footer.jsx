@@ -5,7 +5,7 @@ import Logo from './Logo';
 import TikTokIcon from './icons/TikTokIcon';
 import { BUSINESS, links } from '@/lib/business';
 import { useApp } from '@/contexts/AppContext';
-import { Phone, MapPin, Navigation } from 'lucide-react';
+import { Phone, MapPin, Navigation, Settings } from 'lucide-react';
 
 const QUICK_LINK_KEYS = [
   { id: 'home', tKey: 'nav.home' },
@@ -109,7 +109,19 @@ export default function Footer() {
           <p data-testid="footer-copyright">
             © {year} {BUSINESS.name}. {t('footer.rights')}
           </p>
-          <p>{t('footer.country')}</p>
+          <div className="flex items-center gap-5">
+            <p>{t('footer.country')}</p>
+            <a
+              href="/admin/login"
+              data-testid="footer-admin-link"
+              aria-label="Admin panel"
+              title="Admin panel"
+              className="inline-flex items-center gap-1.5 text-white/40 hover:text-gold-300 transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" strokeWidth={1.8} />
+              {t('footer.admin')}
+            </a>
+          </div>
         </div>
       </div>
     </footer>
