@@ -229,7 +229,7 @@ export default async function AdminPage({ searchParams }) {
           </div>
 
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
-            <div className="hidden lg:grid grid-cols-[1.05fr_1.45fr_0.95fr_1.15fr_0.8fr_0.85fr_0.95fr_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+            <div className="hidden lg:grid grid-cols-[1.02fr_1.35fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
               <span>{t('admin.table.client')}</span>
               <span>{t('admin.table.phone')}</span>
@@ -237,6 +237,7 @@ export default async function AdminPage({ searchParams }) {
               <span>{t('admin.table.status')}</span>
               <span>{t('admin.table.preferred')}</span>
               <span>{t('admin.table.submitted')}</span>
+              <span className="text-right">Notes</span>
               <span className="text-right">{t('admin.actions.update')}</span>
               <span className="text-right">{t('admin.actions.delete')}</span>
             </div>
@@ -246,7 +247,7 @@ export default async function AdminPage({ searchParams }) {
                 {data.items.map((request) => (
                   <article
                     key={request.id}
-                    className="grid lg:grid-cols-[1.05fr_1.45fr_0.95fr_1.15fr_0.8fr_0.85fr_0.95fr_64px_64px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    className="grid lg:grid-cols-[1.02fr_1.35fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px_64px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
                     data-testid={`admin-row-${request.id}`}
                   >
                     <Cell
@@ -268,6 +269,7 @@ export default async function AdminPage({ searchParams }) {
                     <StatusCell status={request.status} t={t} />
                     <Cell label={t('admin.table.preferred')} primary={request.preferred_date ? formatDate(request.preferred_date) : t('admin.table.notSpecified')} />
                     <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} />
+                    <NotesCell request={request} action={updateAdminNoteAction} />
                     <UpdateCell request={request} action={updateRequestAction} t={t} />
                     <DeleteCell id={request.id} action={deleteRequestAction} t={t} />
                   </article>
@@ -533,6 +535,15 @@ function UpdateCell({ request, action, t }) {
     <div className="lg:text-right">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{t('admin.actions.update')}</p>
       <AdminUpdateRequestButton request={request} action={action} />
+    </div>
+  );
+}
+
+function NotesCell({ request, action }) {
+  return (
+    <div className="lg:text-right">
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">Notes</p>
+      <AdminRequestMessage request={request} action={action} compact />
     </div>
   );
 }
