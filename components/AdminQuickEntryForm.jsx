@@ -2,6 +2,7 @@
 
 import React, { useActionState } from 'react';
 import { Plus, FilePlus2, Loader2, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { useApp } from '@/contexts/AppContext';
 
 const INITIAL_STATE = {
   ok: false,
@@ -39,8 +40,9 @@ function Field({ label, name, type = 'text', placeholder, defaultValue = '', req
   );
 }
 
-export default function AdminQuickEntryForm({ action, t }) {
+export default function AdminQuickEntryForm({ action }) {
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
+  const { t } = useApp();
   const values = state?.values || {};
 
   return (

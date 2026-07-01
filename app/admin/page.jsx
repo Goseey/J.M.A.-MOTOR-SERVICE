@@ -125,7 +125,7 @@ export default async function AdminPage({ searchParams }) {
               <StatusBadge dbConfigured={data.dbConfigured} dbReachable={data.dbReachable} t={t} />
             </div>
 
-            <AdminQuickEntryForm action={createAdminEntryAction} t={t} />
+            <AdminQuickEntryForm action={createAdminEntryAction} />
             <AdminFilters filters={filters} t={t} />
           </div>
         </div>
