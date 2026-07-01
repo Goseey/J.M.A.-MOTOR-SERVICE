@@ -10,6 +10,7 @@ import {
   Search,
 } from 'lucide-react';
 import AdminShell from '@/components/AdminShell';
+import AdminRequestMessage from '@/components/AdminRequestMessage';
 import { getAdminServiceRequests, normalizeAdminQuery } from '@/lib/admin';
 import { makeT } from '@/lib/i18n';
 
@@ -87,7 +88,12 @@ export default async function AdminPage({ searchParams }) {
                     data-testid={`admin-row-${request.id}`}
                   >
                     <Cell label={t('admin.table.requestId')} primary={request.id} secondary={request.selected_language === 'so' ? t('admin.table.somali') : t('admin.table.english')} />
-                    <Cell label={t('admin.table.client')} primary={request.customer_name} secondary={request.email || null} />
+                    <ClientCell
+                      label={t('admin.table.client')}
+                      primary={request.customer_name}
+                      secondary={request.email || null}
+                      message={request.message}
+                    />
                     <Cell label={t('admin.table.phone')} primary={request.phone} />
                     <Cell label={t('admin.table.vehicleService')} primary={request.car_make_model} secondary={request.service_needed} />
                     <StatusCell status={request.status} t={t} />
@@ -302,6 +308,35 @@ function Cell({ label, primary, secondary }) {
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
       <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
       {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
+    </div>
+  );
+}
+
+function ClientCell({ label, primary, secondary, message }) {
+  const hasMessage = typeof message === 'string' && message.trim().length > 0;
+
+  return (
+    <div className="min-w-0">
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
+
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
+          {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
+        </div>
+
+        {hasMessage && (
+          <div className="hidden lg:block shrink-0">
+            <AdminRequestMessage message={message} compact />
+          </div>
+        )}
+      </div>
+
+      {hasMessage && (
+        <div className="mt-3 lg:hidden">
+          <AdminRequestMessage message={message} />
+        </div>
+      )}
     </div>
   );
 }
