@@ -437,12 +437,7 @@ function StatusBadge({ dbConfigured, dbReachable, t }) {
     );
   }
 
-  return (
-    <div className="inline-flex items-center gap-3 px-4 py-3 rounded-sm border border-emerald-400/20 bg-emerald-400/10 text-emerald-100" data-testid="admin-db-note">
-      <Database className="h-4 w-4 text-emerald-300" strokeWidth={1.8} />
-      <span className="text-[13px] leading-relaxed break-words">{t('admin.db.connected')}</span>
-    </div>
-  );
+  return null;
 }
 
 function EmptyState({ dbConfigured, dbReachable, t }) {
