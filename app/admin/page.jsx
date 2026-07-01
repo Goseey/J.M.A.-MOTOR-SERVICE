@@ -147,7 +147,7 @@ export default async function AdminPage({ searchParams }) {
           </div>
 
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
-            <div className="hidden lg:grid grid-cols-[1fr_1.25fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr_88px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+            <div className="hidden lg:grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr_0.85fr_0.9fr_1fr_88px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
               <span>{t('admin.table.client')}</span>
               <span>{t('admin.table.phone')}</span>
@@ -163,7 +163,7 @@ export default async function AdminPage({ searchParams }) {
                 {data.items.map((request) => (
                   <article
                     key={request.id}
-                    className="grid lg:grid-cols-[1fr_1.25fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr_88px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    className="grid lg:grid-cols-[1.1fr_1.6fr_1fr_1.2fr_0.85fr_0.9fr_1fr_88px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
                     data-testid={`admin-row-${request.id}`}
                   >
                     <Cell
@@ -385,7 +385,7 @@ function Cell({ label, primary, secondary }) {
     <div className="min-w-0">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
       <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
-      {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
+      {secondary && <p className="mt-1 text-[12px] text-white/45 break-all">{secondary}</p>}
     </div>
   );
 }
@@ -401,10 +401,10 @@ function ClientCell({ label, primary, secondary, message, source, t }) {
     <div className="min-w-0">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
-          {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
+          {secondary && <p className="mt-1 text-[12px] text-white/45 break-all">{secondary}</p>}
           <div className="mt-2">
             <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${sourceTone}`}>
               {sourceLabel}
