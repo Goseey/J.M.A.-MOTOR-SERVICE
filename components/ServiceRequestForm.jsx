@@ -13,6 +13,26 @@ const INITIAL_FORM = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function toLocalDateInputValue(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function isBlockedBookingDate(value) {
+  if (!value) return false;
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return true;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (date < today) return true;
+  if (date.getDay() === 0) return true;
+  return false;
+}
+
 function makeValidator(t) {
   return (form) => {
     const errors = {};
@@ -21,6 +41,7 @@ function makeValidator(t) {
     if (!EMAIL_RE.test(form.email.trim())) errors.email = t('form.validation.email');
     if (form.car_make_model.trim().length < 1) errors.car_make_model = t('form.validation.car');
     if (form.service_needed.trim().length < 1) errors.service_needed = t('form.validation.service');
+    if (form.preferred_date && isBlockedBookingDate(form.preferred_date)) errors.preferred_date = 'Please choose a future date that is not Sunday.';
     return errors;
   };
 }
@@ -87,6 +108,7 @@ export default function ServiceRequestForm() {
   };
 
   const serviceOptions = t('services_list_short') || [];
+  const minDate = toLocalDateInputValue();
 
   return (
     <section
@@ -165,10 +187,11 @@ export default function ServiceRequestForm() {
               />
             </FormField>
 
-            <FormField label={t('form.fields.date')} hint={t('form.hints.optional')} testid="form-field-date">
+            <FormField label={t('form.fields.date')} hint={t('form.hints.optional')} error={errors.preferred_date} testid="form-field-date">
               <input
                 type="date" value={form.preferred_date} onChange={update('preferred_date')}
-                className={`${inputCls()} text-white/85`}
+                min={minDate}
+                className={`${inputCls(errors.preferred_date)} text-white/85`}
                 data-testid="form-input-date"
               />
             </FormField>

@@ -8,6 +8,21 @@ export const dynamic = 'force-dynamic';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_LANGS = new Set(['en', 'so']);
 
+function isValidPreferredDate(value) {
+  if (!value) return true;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (date < today) return false;
+  if (date.getDay() === 0) return false;
+  return true;
+}
+
 function validate(body) {
   const errs = {};
   const must = (k, ok, msg) => { if (!ok) errs[k] = msg; };
@@ -22,6 +37,8 @@ function validate(body) {
        'Please tell us the car make and model.');
   must('service_needed', typeof body?.service_needed === 'string' && body.service_needed.trim().length > 0,
        'Please choose a service.');
+  must('preferred_date', isValidPreferredDate(body?.preferred_date),
+       'Please choose a future date that is not Sunday.');
   return errs;
 }
 
