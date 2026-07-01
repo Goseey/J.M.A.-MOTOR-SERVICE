@@ -70,8 +70,8 @@ export default function AdminUpdateRequestButton({ request, action }) {
       {open && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-5">
           <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
-              <div>
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6">
+              <div className="min-w-0 flex-1 pr-2 text-left">
                 <p className="text-[11px] uppercase tracking-widest2 text-gold-300">Admin update</p>
                 <h2 className="mt-1 font-display text-xl font-bold text-white sm:text-2xl">Update service request</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
