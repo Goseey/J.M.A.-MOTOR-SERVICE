@@ -125,7 +125,6 @@ export default async function AdminPage({ searchParams }) {
               <StatusBadge dbConfigured={data.dbConfigured} dbReachable={data.dbReachable} t={t} />
             </div>
 
-            <AdminQuickEntryForm action={createAdminEntryAction} />
             <AdminFilters filters={filters} t={t} />
           </div>
         </div>
@@ -139,8 +138,11 @@ export default async function AdminPage({ searchParams }) {
               <span className="text-white font-semibold">{data.total}</span>{' '}
               {data.total === 1 ? t('admin.stats.clientSuffix') : t('admin.stats.clientsSuffix')}
             </div>
-            <div className="text-sm text-white/45" data-testid="admin-default-sort-note">
-              {t('admin.stats.defaultOrder')}
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-white/45" data-testid="admin-default-sort-note">
+                {t('admin.stats.defaultOrder')}
+              </div>
+              <AdminQuickEntryForm action={createAdminEntryAction} />
             </div>
           </div>
 
@@ -222,7 +224,7 @@ export default async function AdminPage({ searchParams }) {
 
 function AdminFilters({ filters, t }) {
   return (
-    <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(280px,1.2fr)_minmax(320px,1fr)_minmax(220px,220px)_minmax(220px,220px)_auto]" data-testid="admin-filters-bar">
+    <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(240px,1.15fr)_minmax(240px,1fr)_minmax(190px,0.8fr)_minmax(190px,0.8fr)_minmax(132px,148px)_minmax(132px,148px)]" data-testid="admin-filters-bar">
       <label className="flex h-14 items-center gap-3 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
         <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
         <input
@@ -256,23 +258,23 @@ function AdminFilters({ filters, t }) {
       <DateField label={t('admin.filters.dateFrom')} name="from" value={filters.from} testid="admin-date-from" />
       <DateField label={t('admin.filters.dateTo')} name="to" value={filters.to} testid="admin-date-to" />
 
-      <div className="flex h-14 flex-wrap gap-3 xl:flex-nowrap">
+      <div className="flex h-14 min-w-0">
         <button
           type="submit"
-          className="inline-flex h-14 min-w-[132px] items-center justify-center gap-2 px-5 rounded-sm bg-gold-400 text-ink-950 font-semibold transition-colors shadow-gold hover:bg-gold-300"
+          className="inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 px-4 rounded-sm bg-gold-400 text-ink-950 font-semibold transition-colors shadow-gold hover:bg-gold-300"
           data-testid="admin-apply-filters"
         >
           <Search className="h-4 w-4" strokeWidth={1.9} /> {t('admin.filters.apply')}
         </button>
+      </div>
         <a
           href={`/admin${filters.lang === 'so' ? '?lang=so' : ''}`}
-          className="inline-flex h-14 min-w-[132px] items-center justify-center gap-2 px-5 rounded-sm border border-white/10 bg-ink-900 text-white/80 transition-colors hover:border-white/20 hover:bg-ink-800 hover:text-white"
+          className="inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/80 transition-colors hover:border-white/20 hover:bg-ink-800 hover:text-white"
           data-testid="admin-reset-filters"
         >
           <RotateCcw className="h-4 w-4 text-gold-300" strokeWidth={1.9} />
           {t('admin.filters.reset')}
         </a>
-      </div>
     </form>
   );
 }
