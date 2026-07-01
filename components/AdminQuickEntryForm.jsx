@@ -53,21 +53,14 @@ export default function AdminQuickEntryForm({ action }) {
   return (
     <>
       <div className="flex items-center justify-between gap-4" data-testid="admin-quick-entry-trigger-wrap">
-        <div>
-          <p className="text-[11px] uppercase tracking-widest2 text-gold-300">{t('admin.journal.overline')}</p>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">{t('admin.journal.description')}</p>
-        </div>
-
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-sm border border-gold-400/30 bg-gold-400/10 px-4 text-[13px] font-semibold tracking-wide text-gold-200 transition-colors hover:border-gold-400/50 hover:bg-gold-400/15 hover:text-gold-100"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-gold-400/30 bg-gold-400/10 text-gold-200 transition-colors hover:border-gold-400/50 hover:bg-gold-400/15 hover:text-gold-100"
           data-testid="admin-open-quick-entry"
+          title={t('admin.journal.submit')}
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm bg-gold-400 text-ink-950">
-            <Plus className="h-4 w-4" strokeWidth={2.2} />
-          </span>
-          <span className="hidden sm:inline">{t('admin.journal.submit')}</span>
+          <Plus className="h-4 w-4" strokeWidth={2.2} />
         </button>
       </div>
 

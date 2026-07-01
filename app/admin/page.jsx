@@ -224,9 +224,6 @@ export default async function AdminPage({ searchParams }) {
               {data.total === 1 ? t('admin.stats.clientSuffix') : t('admin.stats.clientsSuffix')}
             </div>
             <div className="flex items-center gap-3">
-              <div className="text-sm text-white/45" data-testid="admin-default-sort-note">
-                {t('admin.stats.defaultOrder')}
-              </div>
               <AdminQuickEntryForm action={createAdminEntryAction} />
             </div>
           </div>
@@ -270,7 +267,7 @@ export default async function AdminPage({ searchParams }) {
                     <Cell label={t('admin.table.vehicleService')} primary={request.car_make_model} secondary={request.service_needed} />
                     <StatusCell status={request.status} t={t} />
                     <Cell label={t('admin.table.preferred')} primary={request.preferred_date ? formatDate(request.preferred_date) : t('admin.table.notSpecified')} />
-                    <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} secondary={toIsoDate(request.created_at)} />
+                    <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} />
                     <UpdateCell request={request} action={updateRequestAction} t={t} />
                     <DeleteCell id={request.id} action={deleteRequestAction} t={t} />
                   </article>
@@ -595,10 +592,6 @@ function formatDate(value) {
     month: 'short',
     year: 'numeric',
   }).format(new Date(value));
-}
-
-function toIsoDate(value) {
-  return new Date(value).toISOString().slice(0, 10);
 }
 
 async function sendBookingUpdateEmail(doc) {
