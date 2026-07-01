@@ -16,9 +16,10 @@ import { revalidatePath } from 'next/cache';
 import AdminShell from '@/components/AdminShell';
 import AdminQuickEntryForm from '@/components/AdminQuickEntryForm';
 import AdminRequestMessage from '@/components/AdminRequestMessage';
+import AdminUpdateRequestButton from '@/components/AdminUpdateRequestButton';
 import { getAdminServiceRequests, normalizeAdminQuery } from '@/lib/admin';
 import { getAdminSession, ADMIN_SESSION_COOKIE } from '@/lib/admin-auth';
-import { deleteServiceRequest, insertServiceRequest, isDbConfigured } from '@/lib/db';
+import { deleteServiceRequest, insertServiceRequest, isDbConfigured, updateServiceRequest } from '@/lib/db';
 import { makeT } from '@/lib/i18n';
 
 export default async function AdminPage({ searchParams }) {
@@ -101,6 +102,61 @@ export default async function AdminPage({ searchParams }) {
     }
   }
 
+  async function updateRequestAction(prevState, formData) {
+    'use server';
+
+    const cookieStore = await cookies();
+    const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+    if (!currentAdmin) redirect('/admin/login?next=/admin');
+
+    const id = String(formData.get('id') || '').trim();
+    const previousPreferredDate = String(formData.get('previous_preferred_date') || '').trim();
+    const values = {
+      id,
+      customer_name: String(formData.get('customer_name') || '').trim(),
+      phone: String(formData.get('phone') || '').trim(),
+      email: String(formData.get('email') || '').trim(),
+      car_make_model: String(formData.get('car_make_model') || '').trim(),
+      service_needed: String(formData.get('service_needed') || '').trim(),
+      preferred_date: String(formData.get('preferred_date') || '').trim(),
+      message: String(formData.get('message') || '').trim(),
+      status: String(formData.get('status') || 'new').trim().toLowerCase(),
+      selected_language: String(formData.get('selected_language') || 'en') === 'so' ? 'so' : 'en',
+    };
+
+    if (!id || !isDbConfigured()) {
+      return { ok: false, error: t('admin.journal.errors.generic'), values };
+    }
+
+    if (!values.customer_name || !values.phone || !values.car_make_model || !values.service_needed) {
+      return { ok: false, error: t('admin.journal.errors.generic'), values };
+    }
+
+    try {
+      const updated = await updateServiceRequest(id, {
+        customer_name: values.customer_name,
+        phone: values.phone,
+        email: values.email || null,
+        car_make_model: values.car_make_model,
+        service_needed: values.service_needed,
+        preferred_date: values.preferred_date || null,
+        message: values.message || null,
+        status: values.status,
+      });
+
+      const dateChanged = (previousPreferredDate || '') !== (values.preferred_date || '');
+      if (updated && dateChanged && updated.email && process.env.RESEND_API_KEY) {
+        await sendBookingUpdateEmail({ ...updated, selected_language: values.selected_language });
+      }
+    } catch (error) {
+      console.error('[admin] Failed to update service request:', error?.message || error);
+      return { ok: false, error: t('admin.journal.errors.generic'), values };
+    }
+
+    revalidatePath('/admin');
+    return { ok: true, error: '', values: {} };
+  }
+
   return (
     <AdminShell>
       <section id="overview" className="bg-ink-950 border-b border-white/10" data-testid="admin-page-shell">
@@ -147,7 +203,7 @@ export default async function AdminPage({ searchParams }) {
           </div>
 
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
-            <div className="hidden lg:grid grid-cols-[1.1fr_1.6fr_1fr_1.2fr_0.85fr_0.9fr_1fr_88px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+            <div className="hidden lg:grid grid-cols-[1.05fr_1.45fr_0.95fr_1.15fr_0.8fr_0.85fr_0.95fr_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
               <span>{t('admin.table.client')}</span>
               <span>{t('admin.table.phone')}</span>
@@ -155,6 +211,7 @@ export default async function AdminPage({ searchParams }) {
               <span>{t('admin.table.status')}</span>
               <span>{t('admin.table.preferred')}</span>
               <span>{t('admin.table.submitted')}</span>
+              <span className="text-right">{t('admin.actions.update')}</span>
               <span className="text-right">{t('admin.actions.delete')}</span>
             </div>
 
@@ -163,7 +220,7 @@ export default async function AdminPage({ searchParams }) {
                 {data.items.map((request) => (
                   <article
                     key={request.id}
-                    className="grid lg:grid-cols-[1.1fr_1.6fr_1fr_1.2fr_0.85fr_0.9fr_1fr_88px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    className="grid lg:grid-cols-[1.05fr_1.45fr_0.95fr_1.15fr_0.8fr_0.85fr_0.95fr_64px_64px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
                     data-testid={`admin-row-${request.id}`}
                   >
                     <Cell
@@ -184,6 +241,7 @@ export default async function AdminPage({ searchParams }) {
                     <StatusCell status={request.status} t={t} />
                     <Cell label={t('admin.table.preferred')} primary={request.preferred_date ? formatDate(request.preferred_date) : t('admin.table.notSpecified')} />
                     <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} secondary={toIsoDate(request.created_at)} />
+                    <UpdateCell request={request} action={updateRequestAction} t={t} />
                     <DeleteCell id={request.id} action={deleteRequestAction} t={t} />
                   </article>
                 ))}
@@ -447,6 +505,15 @@ function DeleteCell({ id, action, t }) {
   );
 }
 
+function UpdateCell({ request, action, t }) {
+  return (
+    <div className="lg:text-right">
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{t('admin.actions.update')}</p>
+      <AdminUpdateRequestButton request={request} action={action} />
+    </div>
+  );
+}
+
 function StatusCell({ status, t }) {
   const normalized = String(status || 'new').toLowerCase();
   const tone = {
@@ -501,4 +568,63 @@ function formatDate(value) {
 
 function toIsoDate(value) {
   return new Date(value).toISOString().slice(0, 10);
+}
+
+async function sendBookingUpdateEmail(doc) {
+  try {
+    const { Resend } = await import('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const from = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+    const businessInbox = process.env.BUSINESS_EMAIL || 'info@jmamotorservice.ie';
+    const customerEmail = doc.email?.trim();
+    if (!customerEmail) return false;
+
+    const isSomali = doc.selected_language === 'so';
+    const subject = isSomali
+      ? 'J.M.A. Motor Service — taariikhda codsigaaga waa la cusboonaysiiyay'
+      : 'J.M.A. Motor Service — your booking date was updated';
+    const heading = isSomali
+      ? 'Taariikhda codsigaaga adeegga waa la beddelay'
+      : 'Your service request date has been updated';
+    const intro = isSomali
+      ? 'Kooxdayadu waxay cusboonaysiiyeen taariikhda codsigaaga. Fadlan hoos ka eeg faahfaahinta cusub.'
+      : 'Our team has updated the preferred date for your service request. Please review the updated details below.';
+    const dateLabel = isSomali ? 'Taariikhda cusub' : 'Updated date';
+    const serviceLabel = isSomali ? 'Adeeg' : 'Service';
+    const carLabel = isSomali ? 'Baabuur' : 'Vehicle';
+    const footer = isSomali
+      ? 'Haddii aad qabto wax su’aalo ah, fadlan si toos ah nala soo xiriir.'
+      : 'If you have any questions, please contact us directly.';
+
+    await resend.emails.send({
+      from,
+      to: [customerEmail],
+      subject,
+      reply_to: businessInbox,
+      html: `<div style="background:#050505;padding:32px 0;font-family:Arial,sans-serif;">
+        <table role="presentation" width="600" align="center" cellspacing="0" cellpadding="0" style="background:#121212;border:1px solid #2a2a2a;border-radius:4px;">
+          <tr><td style="padding:24px 24px 0 24px;">
+            <div style="color:#D4AF37;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;">J.M.A. Motor Service</div>
+            <h1 style="color:#ffffff;font-size:22px;margin:8px 0 6px 0;">${heading}</h1>
+            <p style="color:#a3a3a3;font-size:14px;line-height:1.6;margin:0 0 18px 0;">${intro}</p>
+          </td></tr>
+          <tr><td style="padding:0 12px 0 12px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #2a2a2a;">
+              <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${dateLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${formatDate(doc.preferred_date)}</td></tr>
+              <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${carLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${escapeHtml(doc.car_make_model || '—')}</td></tr>
+              <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${serviceLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${escapeHtml(doc.service_needed || '—')}</td></tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding:22px 24px 24px 24px;">
+            <p style="color:#d1d5db;font-size:13px;line-height:1.6;margin:0;">${footer}</p>
+          </td></tr>
+        </table>
+      </div>`,
+    });
+
+    return true;
+  } catch (error) {
+    console.warn('[admin] Failed to send booking update email:', error?.message || error);
+    return false;
+  }
 }
