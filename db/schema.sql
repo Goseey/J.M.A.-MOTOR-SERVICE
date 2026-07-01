@@ -34,10 +34,14 @@ CREATE TABLE IF NOT EXISTS service_requests (
   selected_language   TEXT         NOT NULL DEFAULT 'en',
   status              TEXT         NOT NULL DEFAULT 'new',
   source              TEXT         NOT NULL DEFAULT 'website',
+  created_by_admin_id UUID         REFERENCES admin_users(id) ON DELETE SET NULL,
   email_sent          BOOLEAN      NOT NULL DEFAULT FALSE,
   created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS created_by_admin_id UUID REFERENCES admin_users(id) ON DELETE SET NULL;
 
 ALTER TABLE service_requests
   DROP CONSTRAINT IF EXISTS service_requests_status_chk;

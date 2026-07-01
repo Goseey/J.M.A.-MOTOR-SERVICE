@@ -8,19 +8,98 @@ import {
   ListFilter,
   RotateCcw,
   Search,
+  Trash2,
 } from 'lucide-react';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import AdminShell from '@/components/AdminShell';
+import AdminQuickEntryForm from '@/components/AdminQuickEntryForm';
 import AdminRequestMessage from '@/components/AdminRequestMessage';
 import { getAdminServiceRequests, normalizeAdminQuery } from '@/lib/admin';
+import { getAdminSession, ADMIN_SESSION_COOKIE } from '@/lib/admin-auth';
+import { deleteServiceRequest, insertServiceRequest, isDbConfigured } from '@/lib/db';
 import { makeT } from '@/lib/i18n';
 
 export default async function AdminPage({ searchParams }) {
   const filters = normalizeAdminQuery(await searchParams);
+  const cookieStore = await cookies();
+  const admin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+
+  if (!admin) {
+    const params = new URLSearchParams();
+    if (filters.lang === 'so') params.set('lang', 'so');
+    params.set('next', '/admin');
+    redirect(`/admin/login?${params.toString()}`);
+  }
+
   const data = await getAdminServiceRequests(filters);
   const t = makeT(filters.lang || 'en');
 
   const rangeStart = data.total === 0 ? 0 : (data.page - 1) * data.pageSize + 1;
   const rangeEnd = data.total === 0 ? 0 : Math.min(data.page * data.pageSize, data.total);
+
+  async function createAdminEntryAction(prevState, formData) {
+    'use server';
+
+    const cookieStore = await cookies();
+    const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+    if (!currentAdmin) redirect('/admin/login?next=/admin');
+
+    const values = {
+      customer_name: String(formData.get('customer_name') || '').trim(),
+      phone: String(formData.get('phone') || '').trim(),
+      email: String(formData.get('email') || '').trim(),
+      car_make_model: String(formData.get('car_make_model') || '').trim(),
+      service_needed: String(formData.get('service_needed') || '').trim(),
+      preferred_date: String(formData.get('preferred_date') || '').trim(),
+      message: String(formData.get('message') || '').trim(),
+    };
+
+    if (!isDbConfigured()) {
+      return { ok: false, error: t('admin.db.notConfigured'), values };
+    }
+
+    if (!values.customer_name || !values.phone || !values.car_make_model || !values.service_needed) {
+      return { ok: false, error: t('admin.journal.errors.generic'), values };
+    }
+
+    try {
+      await insertServiceRequest({
+        ...values,
+        email: values.email || null,
+        preferred_date: values.preferred_date || null,
+        message: values.message || null,
+        selected_language: filters.lang || 'en',
+        source: 'admin',
+        created_by_admin_id: currentAdmin.id,
+      });
+    } catch (error) {
+      console.error('[admin] Failed to create admin entry:', error?.message || error);
+      return { ok: false, error: t('admin.journal.errors.generic'), values };
+    }
+
+    revalidatePath('/admin');
+    return { ok: true, error: '', values: {} };
+  }
+
+  async function deleteRequestAction(formData) {
+    'use server';
+
+    const cookieStore = await cookies();
+    const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+    if (!currentAdmin) redirect('/admin/login?next=/admin');
+
+    const id = String(formData.get('id') || '').trim();
+    if (!id || !isDbConfigured()) return;
+
+    try {
+      await deleteServiceRequest(id);
+      revalidatePath('/admin');
+    } catch (error) {
+      console.error('[admin] Failed to delete service request:', error?.message || error);
+    }
+  }
 
   return (
     <AdminShell>
@@ -43,13 +122,10 @@ export default async function AdminPage({ searchParams }) {
                 </p>
               </div>
 
-              <StatusBadge
-                dbConfigured={data.dbConfigured}
-                dbReachable={data.dbReachable}
-                t={t}
-              />
+              <StatusBadge dbConfigured={data.dbConfigured} dbReachable={data.dbReachable} t={t} />
             </div>
 
+            <AdminQuickEntryForm action={createAdminEntryAction} t={t} />
             <AdminFilters filters={filters} t={t} />
           </div>
         </div>
@@ -69,7 +145,7 @@ export default async function AdminPage({ searchParams }) {
           </div>
 
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
-            <div className="hidden lg:grid grid-cols-[1fr_1.2fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+            <div className="hidden lg:grid grid-cols-[1fr_1.25fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr_88px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
               <span>{t('admin.table.client')}</span>
               <span>{t('admin.table.phone')}</span>
@@ -77,6 +153,7 @@ export default async function AdminPage({ searchParams }) {
               <span>{t('admin.table.status')}</span>
               <span>{t('admin.table.preferred')}</span>
               <span>{t('admin.table.submitted')}</span>
+              <span className="text-right">{t('admin.actions.delete')}</span>
             </div>
 
             {data.items.length > 0 ? (
@@ -84,21 +161,28 @@ export default async function AdminPage({ searchParams }) {
                 {data.items.map((request) => (
                   <article
                     key={request.id}
-                    className="grid lg:grid-cols-[1fr_1.2fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    className="grid lg:grid-cols-[1fr_1.25fr_1.05fr_1.2fr_0.85fr_0.9fr_0.95fr_88px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
                     data-testid={`admin-row-${request.id}`}
                   >
-                    <Cell label={t('admin.table.requestId')} primary={request.id} secondary={request.selected_language === 'so' ? t('admin.table.somali') : t('admin.table.english')} />
+                    <Cell
+                      label={t('admin.table.requestId')}
+                      primary={request.id}
+                      secondary={request.selected_language === 'so' ? t('admin.table.somali') : t('admin.table.english')}
+                    />
                     <ClientCell
                       label={t('admin.table.client')}
                       primary={request.customer_name}
                       secondary={request.email || null}
                       message={request.message}
+                      source={request.source}
+                      t={t}
                     />
                     <Cell label={t('admin.table.phone')} primary={request.phone} />
                     <Cell label={t('admin.table.vehicleService')} primary={request.car_make_model} secondary={request.service_needed} />
                     <StatusCell status={request.status} t={t} />
                     <Cell label={t('admin.table.preferred')} primary={request.preferred_date ? formatDate(request.preferred_date) : t('admin.table.notSpecified')} />
                     <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} secondary={toIsoDate(request.created_at)} />
+                    <DeleteCell id={request.id} action={deleteRequestAction} t={t} />
                   </article>
                 ))}
               </div>
@@ -214,11 +298,7 @@ function DateField({ label, name, value, testid }) {
 function Pagination({ filters, page, totalPages, t }) {
   return (
     <div className="flex items-center gap-2 flex-wrap" data-testid="admin-pagination">
-      <PageLink
-        disabled={page === 1}
-        href={buildAdminHref(filters, Math.max(1, page - 1))}
-        testid="admin-pagination-prev"
-      >
+      <PageLink disabled={page === 1} href={buildAdminHref(filters, Math.max(1, page - 1))} testid="admin-pagination-prev">
         <ArrowLeft className="h-4 w-4" strokeWidth={1.9} /> {t('admin.pagination.prev')}
       </PageLink>
 
@@ -226,11 +306,7 @@ function Pagination({ filters, page, totalPages, t }) {
         {t('admin.pagination.page')} <span className="text-white font-semibold">{page}</span> {t('admin.pagination.of')} <span className="text-white font-semibold">{totalPages}</span>
       </div>
 
-      <PageLink
-        disabled={page >= totalPages}
-        href={buildAdminHref(filters, Math.min(totalPages, page + 1))}
-        testid="admin-pagination-next"
-      >
+      <PageLink disabled={page >= totalPages} href={buildAdminHref(filters, Math.min(totalPages, page + 1))} testid="admin-pagination-next">
         {t('admin.pagination.next')} <ArrowRight className="h-4 w-4" strokeWidth={1.9} />
       </PageLink>
     </div>
@@ -312,8 +388,12 @@ function Cell({ label, primary, secondary }) {
   );
 }
 
-function ClientCell({ label, primary, secondary, message }) {
+function ClientCell({ label, primary, secondary, message, source, t }) {
   const hasMessage = typeof message === 'string' && message.trim().length > 0;
+  const sourceLabel = source === 'admin' ? t('admin.table.adminEntry') : t('admin.table.websiteEntry');
+  const sourceTone = source === 'admin'
+    ? 'border-gold-400/25 bg-gold-400/10 text-gold-200'
+    : 'border-sky-400/20 bg-sky-400/10 text-sky-100';
 
   return (
     <div className="min-w-0">
@@ -323,6 +403,11 @@ function ClientCell({ label, primary, secondary, message }) {
         <div className="min-w-0 flex-1">
           <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
           {secondary && <p className="mt-1 text-[12px] text-white/45 break-words">{secondary}</p>}
+          <div className="mt-2">
+            <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${sourceTone}`}>
+              {sourceLabel}
+            </span>
+          </div>
         </div>
 
         {hasMessage && (
@@ -337,6 +422,25 @@ function ClientCell({ label, primary, secondary, message }) {
           <AdminRequestMessage message={message} />
         </div>
       )}
+    </div>
+  );
+}
+
+function DeleteCell({ id, action, t }) {
+  return (
+    <div className="lg:text-right">
+      <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{t('admin.actions.delete')}</p>
+      <form action={action}>
+        <input type="hidden" name="id" value={id} />
+        <button
+          type="submit"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-rose-400/20 bg-rose-500/10 text-rose-200 transition-colors hover:border-rose-400/40 hover:bg-rose-500/15"
+          data-testid={`admin-delete-${id}`}
+          title={t('admin.actions.delete')}
+        >
+          <Trash2 className="h-4 w-4" strokeWidth={1.8} />
+        </button>
+      </form>
     </div>
   );
 }
