@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS service_requests (
   service_needed      TEXT         NOT NULL,
   preferred_date      DATE,
   message             TEXT,
+  admin_note          TEXT,
   selected_language   TEXT         NOT NULL DEFAULT 'en',
   status              TEXT         NOT NULL DEFAULT 'new',
   source              TEXT         NOT NULL DEFAULT 'website',
@@ -39,6 +40,9 @@ CREATE TABLE IF NOT EXISTS service_requests (
   created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS admin_note TEXT;
 
 ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS created_by_admin_id UUID REFERENCES admin_users(id) ON DELETE SET NULL;

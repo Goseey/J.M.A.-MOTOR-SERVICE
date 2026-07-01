@@ -19,7 +19,7 @@ import AdminRequestMessage from '@/components/AdminRequestMessage';
 import AdminUpdateRequestButton from '@/components/AdminUpdateRequestButton';
 import { getAdminServiceRequests, normalizeAdminQuery } from '@/lib/admin';
 import { getAdminSession, ADMIN_SESSION_COOKIE } from '@/lib/admin-auth';
-import { deleteServiceRequest, insertServiceRequest, isDbConfigured, updateServiceRequest } from '@/lib/db';
+import { deleteServiceRequest, insertServiceRequest, isDbConfigured, updateServiceRequest, updateServiceRequestAdminNote } from '@/lib/db';
 import { makeT } from '@/lib/i18n';
 
 export default async function AdminPage({ searchParams }) {
@@ -141,6 +141,7 @@ export default async function AdminPage({ searchParams }) {
         service_needed: values.service_needed,
         preferred_date: values.preferred_date || null,
         message: values.message || null,
+        admin_note: String(formData.get('admin_note') || '').trim() || null,
         status: values.status,
       });
 
@@ -155,6 +156,34 @@ export default async function AdminPage({ searchParams }) {
 
     revalidatePath('/admin');
     return { ok: true, error: '', values: {} };
+  }
+
+  async function updateAdminNoteAction(prevState, formData) {
+    'use server';
+
+    const cookieStore = await cookies();
+    const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+    if (!currentAdmin) redirect('/admin/login?next=/admin');
+
+    const id = String(formData.get('id') || '').trim();
+    const adminNote = String(formData.get('admin_note') || '').trim();
+
+    if (!id || !isDbConfigured()) {
+      return { ok: false, error: 'Could not save note.', value: adminNote };
+    }
+
+    try {
+      const result = await updateServiceRequestAdminNote(id, adminNote || null);
+      if (!result.supported) {
+        return { ok: false, error: 'Database note field is not ready yet. Run the latest schema update first.', value: adminNote };
+      }
+    } catch (error) {
+      console.error('[admin] Failed to update admin note:', error?.message || error);
+      return { ok: false, error: 'Could not save note.', value: adminNote };
+    }
+
+    revalidatePath('/admin');
+    return { ok: true, error: '', value: adminNote };
   }
 
   return (
@@ -232,7 +261,8 @@ export default async function AdminPage({ searchParams }) {
                       label={t('admin.table.client')}
                       primary={request.customer_name}
                       secondary={request.email || null}
-                      message={request.message}
+                      request={request}
+                      action={updateAdminNoteAction}
                       source={request.source}
                       t={t}
                     />
@@ -448,8 +478,9 @@ function Cell({ label, primary, secondary }) {
   );
 }
 
-function ClientCell({ label, primary, secondary, message, source, t }) {
-  const hasMessage = typeof message === 'string' && message.trim().length > 0;
+function ClientCell({ label, primary, secondary, request, action, source, t }) {
+  const hasMessage = typeof request?.message === 'string' && request.message.trim().length > 0;
+  const hasNote = typeof request?.admin_note === 'string' && request.admin_note.trim().length > 0;
   const sourceLabel = source === 'admin' ? t('admin.table.adminEntry') : t('admin.table.websiteEntry');
   const sourceTone = source === 'admin'
     ? 'border-gold-400/25 bg-gold-400/10 text-gold-200'
@@ -470,16 +501,16 @@ function ClientCell({ label, primary, secondary, message, source, t }) {
           </div>
         </div>
 
-        {hasMessage && (
+        {(hasMessage || hasNote) && (
           <div className="hidden lg:block shrink-0">
-            <AdminRequestMessage message={message} compact />
+            <AdminRequestMessage request={request} action={action} compact />
           </div>
         )}
       </div>
 
-      {hasMessage && (
+      {(hasMessage || hasNote) && (
         <div className="mt-3 lg:hidden">
-          <AdminRequestMessage message={message} />
+          <AdminRequestMessage request={request} action={action} />
         </div>
       )}
     </div>
