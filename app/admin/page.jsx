@@ -132,8 +132,8 @@ export default async function AdminPage({ searchParams }) {
 
 function AdminFilters({ filters, t }) {
   return (
-    <form method="get" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(260px,1fr)_220px_220px_auto] gap-3" data-testid="admin-filters-bar">
-      <label className="flex items-center gap-3 h-12 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
+    <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(280px,1.2fr)_minmax(320px,1fr)_minmax(220px,220px)_minmax(220px,220px)_auto]" data-testid="admin-filters-bar">
+      <label className="flex h-14 items-center gap-3 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
         <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
         <input
           type="text"
@@ -145,7 +145,7 @@ function AdminFilters({ filters, t }) {
         />
       </label>
 
-      <label className="flex items-center gap-3 min-h-12 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
+      <label className="flex h-14 items-center gap-3 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
         <ListFilter className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
         <select
           name="sort"
@@ -166,17 +166,17 @@ function AdminFilters({ filters, t }) {
       <DateField label={t('admin.filters.dateFrom')} name="from" value={filters.from} testid="admin-date-from" />
       <DateField label={t('admin.filters.dateTo')} name="to" value={filters.to} testid="admin-date-to" />
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex h-14 flex-wrap gap-3 xl:flex-nowrap">
         <button
           type="submit"
-          className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-sm bg-gold-400 hover:bg-gold-300 text-ink-950 font-semibold transition-colors shadow-gold"
+          className="inline-flex h-14 min-w-[132px] items-center justify-center gap-2 px-5 rounded-sm bg-gold-400 text-ink-950 font-semibold transition-colors shadow-gold hover:bg-gold-300"
           data-testid="admin-apply-filters"
         >
           <Search className="h-4 w-4" strokeWidth={1.9} /> {t('admin.filters.apply')}
         </button>
         <a
           href={`/admin${filters.lang === 'so' ? '?lang=so' : ''}`}
-          className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-sm border border-white/10 bg-ink-900 text-white/80 hover:text-white hover:border-white/20 hover:bg-ink-800 transition-colors"
+          className="inline-flex h-14 min-w-[132px] items-center justify-center gap-2 px-5 rounded-sm border border-white/10 bg-ink-900 text-white/80 transition-colors hover:border-white/20 hover:bg-ink-800 hover:text-white"
           data-testid="admin-reset-filters"
         >
           <RotateCcw className="h-4 w-4 text-gold-300" strokeWidth={1.9} />
@@ -189,7 +189,7 @@ function AdminFilters({ filters, t }) {
 
 function DateField({ label, name, value, testid }) {
   return (
-    <label className="flex items-center gap-3 min-h-12 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid={testid}>
+    <label className="flex h-14 items-center gap-3 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid={testid}>
       <CalendarDays className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
       <div className="min-w-0 w-full">
         <div className="text-[10px] uppercase tracking-widest2 text-white/35">{label}</div>
