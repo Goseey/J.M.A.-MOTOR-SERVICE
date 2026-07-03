@@ -228,7 +228,7 @@ export default async function AdminPage({ searchParams }) {
       <section id="requests" className="bg-ink-900" data-testid="admin-table-section">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10 py-8 sm:py-10">
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
-            <div className="hidden lg:grid grid-cols-[1.02fr_1.45fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
+            <div className="hidden lg:grid grid-cols-[1.02fr_1.7fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
               <span>{t('admin.table.client')}</span>
               <span>{t('admin.table.phone')}</span>
@@ -245,7 +245,7 @@ export default async function AdminPage({ searchParams }) {
                 {data.items.map((request) => (
                   <article
                     key={request.id}
-                    className="grid lg:grid-cols-[1.02fr_1.45fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
+                    className="grid lg:grid-cols-[1.02fr_1.7fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px] gap-4 px-5 py-5 bg-ink-950/60 hover:bg-white/[0.02] transition-colors"
                     data-testid={`admin-row-${request.id}`}
                   >
                     <Cell
@@ -489,21 +489,21 @@ function ClientCell({ label, primary, secondary, request, action, source, t }) {
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
 
       <div className="flex min-w-0 items-start gap-3">
-        <div className="min-w-0 flex-1 overflow-hidden">
+        {(hasMessage || hasNote) && (
+          <div className="hidden lg:flex shrink-0 self-start order-2">
+            <AdminRequestMessage request={request} action={action} compact indicatorMode="split" />
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1 order-1">
           <p className="text-[14px] text-white/85 leading-relaxed break-words [overflow-wrap:anywhere]">{primary}</p>
-          {secondary && <p className="mt-1 text-[12px] text-white/45 break-words [overflow-wrap:anywhere]">{secondary}</p>}
+          {secondary ? <p className="mt-1 text-[12px] text-white/45 break-words [overflow-wrap:anywhere]">{secondary}</p> : null}
           <div className="mt-2 flex items-center gap-2">
             <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${sourceTone}`}>
               {sourceLabel}
             </span>
           </div>
         </div>
-
-        {(hasMessage || hasNote) && (
-          <div className="hidden lg:flex shrink-0 self-start">
-            <AdminRequestMessage request={request} action={action} compact indicatorMode="split" />
-          </div>
-        )}
       </div>
 
       {(hasMessage || hasNote) && (
