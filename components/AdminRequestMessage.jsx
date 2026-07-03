@@ -54,7 +54,7 @@ export default function AdminRequestMessage({ request, action, compact = false, 
   if (!hasCustomerMessage && compact && !hasAdminNote) return null;
 
   return (
-    <div ref={rootRef} className="min-w-0" data-testid="admin-request-message">
+    <div ref={rootRef} className={`min-w-0 ${compact ? 'relative' : ''}`} data-testid="admin-request-message">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -106,11 +106,14 @@ export default function AdminRequestMessage({ request, action, compact = false, 
 
       <div
         id={panelId}
-        className={`grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`}
+        className={compact
+          ? `${open ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'} absolute right-0 top-[calc(100%+12px)] z-40 w-[min(420px,calc(100vw-48px))] transition-all duration-200 ease-out`
+          : `grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`
+        }
         data-testid="admin-request-message-panel"
       >
-        <div className="overflow-hidden">
-          <div className="rounded-sm border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+        <div className={compact ? '' : 'overflow-hidden'}>
+          <div className="rounded-sm border border-white/10 bg-ink-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)] p-4 sm:p-5">
             {cleanMessage ? (
               <>
                 <div className="mb-3 flex items-center gap-2">
