@@ -189,6 +189,8 @@ function makeCustomerEmailHtml(doc) {
 }
 
 async function sendEmails(doc) {
+  // Email delivery is intentionally best-effort: the booking itself should still
+  // succeed even if Resend is unavailable or misconfigured.
   if (!process.env.RESEND_API_KEY) return false;
   try {
     const { Resend } = await import('resend');
@@ -268,6 +270,7 @@ export async function POST(request) {
       );
     }
   } else {
+    // Graceful fallback for preview / first deploys with no database yet.
     saved = {
       id: 'local-' + Date.now().toString(36),
       ...payload,

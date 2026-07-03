@@ -45,6 +45,9 @@ export default async function AdminPage({ searchParams }) {
   async function createAdminEntryAction(prevState, formData) {
     'use server';
 
+    // Server action: creates an internal admin-side request row that lives in the
+    // same timeline as public website bookings.
+
     const cookieStore = await cookies();
     const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
     if (!currentAdmin) redirect('/admin/login?next=/admin');
@@ -107,6 +110,9 @@ export default async function AdminPage({ searchParams }) {
   async function updateRequestAction(prevState, formData) {
     'use server';
 
+    // Server action: updates an existing request and optionally triggers a
+    // customer-facing date-change email when the preferred date changed.
+
     const cookieStore = await cookies();
     const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
     if (!currentAdmin) redirect('/admin/login?next=/admin');
@@ -162,6 +168,8 @@ export default async function AdminPage({ searchParams }) {
 
   async function updateAdminNoteAction(prevState, formData) {
     'use server';
+
+    // Server action: stores internal notes separately from the customer message.
 
     const cookieStore = await cookies();
     const currentAdmin = await getAdminSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);

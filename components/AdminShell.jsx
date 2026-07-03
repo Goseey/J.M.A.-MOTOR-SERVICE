@@ -40,7 +40,7 @@ export default function AdminShell({ children }) {
             </div>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8" aria-label="Admin primary navigation">
+          <nav className="hidden lg:flex items-center gap-8" aria-label={t('admin.menu.primaryNav')}>
             {NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
@@ -77,7 +77,7 @@ export default function AdminShell({ children }) {
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-label={open ? t('admin.menu.close') : t('admin.menu.open')}
               aria-expanded={open}
               data-testid="admin-mobile-menu-toggle"
               className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-sm border border-white/10 text-white/85 hover:bg-white/5"
