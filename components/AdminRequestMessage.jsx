@@ -117,8 +117,8 @@ export default function AdminRequestMessage({ request, action, compact = false, 
             {cleanMessage ? (
               <>
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="h-px w-6 bg-gold-400" />
-                  <span className="text-[10px] uppercase tracking-widest2 text-gold-300">{t('admin.notes.customerMessage')}</span>
+                  <span className="h-px w-6 bg-sky-400" />
+                  <span className="text-[10px] uppercase tracking-widest2 text-sky-200">{t('admin.notes.customerMessage')}</span>
                 </div>
                 <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed text-white/78">
                   {cleanMessage}
@@ -128,10 +128,10 @@ export default function AdminRequestMessage({ request, action, compact = false, 
 
             <div className={`${cleanMessage ? 'mt-5 border-t border-white/10 pt-5' : ''}`}>
               <div className="mb-3 flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-sky-400/20 bg-sky-400/10 text-sky-200">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-amber-400/25 bg-amber-400/10 text-amber-200">
                   <NotebookPen className="h-3.5 w-3.5" strokeWidth={1.8} />
                 </span>
-                <span className="text-[10px] uppercase tracking-widest2 text-sky-200">{t('admin.notes.internalNote')}</span>
+                <span className="text-[10px] uppercase tracking-widest2 text-amber-200">{t('admin.notes.internalNote')}</span>
               </div>
 
               <form action={formAction} className="space-y-3">
