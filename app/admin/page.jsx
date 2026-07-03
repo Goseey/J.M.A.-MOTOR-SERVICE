@@ -254,7 +254,8 @@ export default async function AdminPage({ searchParams }) {
                   >
                     <Cell
                       label={t('admin.table.requestId')}
-                      primary={request.id}
+                      primary={formatShortRequestId(request.id)}
+                      primaryTitle={request.id}
                       secondary={request.selected_language === 'so' ? t('admin.table.somali') : t('admin.table.english')}
                     />
                     <ClientCell
@@ -456,11 +457,11 @@ function EmptyState({ dbConfigured, dbReachable, t }) {
   );
 }
 
-function Cell({ label, primary, secondary }) {
+function Cell({ label, primary, secondary, primaryTitle }) {
   return (
     <div className="min-w-0">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
-      <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
+      <p className="text-[14px] text-white/85 leading-relaxed break-words" title={primaryTitle || primary}>{primary}</p>
       {secondary && <p className="mt-1 text-[12px] text-white/45 break-all">{secondary}</p>}
     </div>
   );
@@ -574,6 +575,13 @@ function buildAdminHref(filters, page) {
   if (page > 1) params.set('page', String(page));
   const query = params.toString();
   return query ? `/admin?${query}` : '/admin';
+}
+
+function formatShortRequestId(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '—';
+  const compact = raw.replace(/-/g, '');
+  return `#${compact.slice(-6).toUpperCase()}`;
 }
 
 function formatDateTime(value) {
