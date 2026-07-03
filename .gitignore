@@ -32,11 +32,13 @@ npm-debug.log*
 Thumbs.db
 *.log
 
-# ───── Project-internal (Emergent platform — not part of the repo) ─────
+# ───── Project-local / generated artifacts ─────
 /.emergent/
+/.agents/
+/.neon
+/skills-lock.json
 /memory/
 /test_reports/
-/design_guidelines.json
 /tests/
 /scripts/
 
