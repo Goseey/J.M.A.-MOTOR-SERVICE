@@ -1,136 +1,154 @@
-# Neon PostgreSQL — setup for J.M.A. Motor Service
+# Neon PostgreSQL setup for J.M.A. Motor Service
 
-The website stores booking / service request submissions in a Neon Postgres
-database. Follow these steps once, then never think about it again.
+This project stores public booking requests and admin-side request data in **Neon Postgres**.
 
----
-
-## 1. Create the Neon project (≈ 2 min)
-
-1. Sign up at https://console.neon.tech (free tier is enough — no credit card).
-2. **Create Project** → name it `jma-motor-service` → pick the EU region closest
-   to your Vercel deployment (Frankfurt or Dublin works great for Dublin
-   visitors).
-3. After the project is created, Neon shows you a **connection string** that
-   looks like this:
-
-   ```
-   postgresql://USER:PASSWORD@ep-xxxx-xxxxxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
-   ```
-
-   **Copy this** — you'll paste it into Vercel in step 3.
-
-> Important: Neon connection strings are SECRET. Never commit them, never paste
-> them in client-side code. The Next.js API route reads from `process.env` only.
+This document reflects the **current Next.js + Neon + database-backed admin auth** version of the project.
 
 ---
 
-## 2. Run the schema migration (≈ 1 min)
+## 1. Create the Neon project
 
-Open the **SQL Editor** in the Neon console (left sidebar → SQL Editor) and run
-the contents of [`db/schema.sql`](./schema.sql) — paste the whole file in and
-hit Run.
+1. Sign up at <https://console.neon.tech>
+2. Create a project such as `jma-motor-service`
+3. Choose an EU region close to Dublin / your Vercel deployment
+4. Copy the connection string Neon gives you
 
-You should see:
+It will look roughly like:
 
-```
-CREATE EXTENSION
-CREATE TABLE
-ALTER TABLE
-ALTER TABLE
-CREATE INDEX (x3)
-CREATE FUNCTION
-CREATE TRIGGER
+```text
+postgresql://USER:PASSWORD@ep-xxxx-xxxxxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
 ```
 
-Verify with:
+Never commit this value. Keep it in environment variables only.
 
-```sql
-SELECT count(*) FROM service_requests;
--- → 0
-```
+---
 
-Alternatively, from your laptop:
+## 2. Run the schema
+
+Run the SQL in [`db/schema.sql`](./schema.sql).
+
+### In Neon SQL Editor
+- Open SQL Editor
+- Paste the file contents
+- Run it
+
+### Or locally with `psql`
 
 ```bash
-psql "postgresql://USER:PASSWORD@ep-xxxx-...neon.tech/neondb?sslmode=require" \
-     -f db/schema.sql
+psql "postgresql://USER:PASSWORD@ep-xxxx-...neon.tech/neondb?sslmode=require" -f db/schema.sql
 ```
 
 ---
 
-## 3. Add the environment variable to Vercel
+## 3. Configure Vercel
 
-In **Vercel project → Settings → Environment Variables** add:
+Set:
 
-| Key            | Value                                  | Environment           |
-|----------------|----------------------------------------|-----------------------|
-| `DATABASE_URL` | (paste your Neon connection string)    | Production + Preview  |
+| Key | Value |
+|---|---|
+| `DATABASE_URL` | Your Neon connection string |
 
-Redeploy. From the Vercel dashboard: **Deployments → … menu → Redeploy**.
+Then redeploy.
 
-For local development:
-
-```bash
-# .env.local — DO NOT COMMIT
-DATABASE_URL=postgresql://USER:PASS@ep-xxxx-...neon.tech/neondb?sslmode=require
-```
+For local development, add the same value to `.env.local`.
 
 ---
 
 ## 4. Verify the connection
 
-After the redeploy, hit the health endpoint:
+Health check:
 
 ```bash
 curl https://<your-domain>.vercel.app/api/service-requests
 ```
 
-You should see:
+Expected result shape:
 
 ```json
 {
   "status": "ok",
   "service": "jma-motor-service",
   "db_configured": true,
+  "db_reachable": true,
   "email_configured": false,
   "time": "2026-..."
 }
 ```
 
-If `db_configured` is `true`, Neon is wired up correctly.
-
-Submit a test request from the website. Then in the Neon SQL Editor:
-
-```sql
-SELECT id, customer_name, phone, service_needed, status, selected_language, created_at
-FROM service_requests
-ORDER BY created_at DESC
-LIMIT 5;
-```
-
-You should see your submission.
+Then create a test booking and verify rows in Neon.
 
 ---
 
-## 5. Common admin queries
+## 5. Create admin users
+
+The current admin area uses:
+- `admin_users` table
+- bcrypt password hashes
+- signed session cookies
+
+### Generate a bcrypt hash
+
+```bash
+node -e "const { hashSync } = require('bcryptjs'); console.log(hashSync('ChangeMe123!', 12));"
+```
+
+### Insert the first admin
 
 ```sql
--- Recent submissions waiting to be contacted
+INSERT INTO admin_users (email, password_hash, display_name)
+VALUES (
+  'admin@example.com',
+  '$2a$12$replace_with_generated_hash',
+  'Main Admin'
+);
+```
+
+You can insert additional admins the same way.
+
+### Required env for login
+
+```bash
+ADMIN_SECRET=choose-a-long-random-secret
+```
+
+Important:
+- `ADMIN_SECRET` signs the cookie
+- the actual password check uses the bcrypt hash stored in `admin_users`
+- helper envs like `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` are optional setup aids, not the live auth source
+
+---
+
+## 6. Useful queries
+
+### Recent requests
+
+```sql
 SELECT id, customer_name, phone, service_needed, preferred_date, created_at
 FROM service_requests
-WHERE status = 'new'
-ORDER BY created_at DESC;
+ORDER BY created_at DESC
+LIMIT 20;
+```
 
--- Mark a request as contacted
-UPDATE service_requests
-SET status = 'contacted'
-WHERE id = '00000000-0000-0000-0000-000000000000';
+### Requests by status
 
--- Submissions by language (Somali vs English breakdown)
-SELECT selected_language, count(*) FROM service_requests GROUP BY 1;
+```sql
+SELECT status, count(*)
+FROM service_requests
+GROUP BY status
+ORDER BY status;
+```
 
--- Last 30 days
+### Requests by language
+
+```sql
+SELECT selected_language, count(*)
+FROM service_requests
+GROUP BY selected_language;
+```
+
+### Last 30 days
+
+```sql
 SELECT date_trunc('day', created_at) AS day, count(*)
 FROM service_requests
 WHERE created_at > now() - interval '30 days'
@@ -140,25 +158,47 @@ ORDER BY 1 DESC;
 
 ---
 
-## Schema reference
+## 7. Current schema expectations
 
-See [`db/schema.sql`](./schema.sql) — it's the single source of truth.
+The codebase gracefully handles older schemas, but the current version expects these `service_requests` columns when fully up to date:
 
-Key fields:
-- `id` — UUID, auto-generated
-- `customer_name`, `phone`, `car_make_model`, `service_needed` — **required**
-- `email`, `preferred_date`, `message` — optional
-- `selected_language` — `'en'` or `'so'` (constrained), defaults to `'en'`
-- `status` — `'new' | 'contacted' | 'confirmed' | 'completed' | 'cancelled'`, defaults to `'new'`
-- `created_at` / `updated_at` — auto-managed; `updated_at` is bumped by a trigger
+- `id`
+- `customer_name`
+- `phone`
+- `email`
+- `car_make_model`
+- `service_needed`
+- `preferred_date`
+- `message`
+- `admin_note`
+- `selected_language`
+- `source`
+- `created_by_admin_id`
+- `status`
+- `email_sent`
+- `created_at`
+- `updated_at`
+
+Admin auth also expects:
+- `admin_users`
 
 ---
 
-## Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Likely cause | Fix |
-|---------|--------------|-----|
-| `db_configured: false` in API health check | `DATABASE_URL` not set on Vercel | Add it under Settings → Environment Variables, redeploy |
-| `error: relation "service_requests" does not exist` | Migration not run | Run `db/schema.sql` in Neon SQL Editor |
-| `error: password authentication failed` | Connection string copied wrong | Re-copy from Neon dashboard, paste exactly into Vercel |
-| Connection times out after deploy | Forgot `?sslmode=require` | Make sure the URL ends with `?sslmode=require` |
+|---|---|---|
+| `db_configured: false` | `DATABASE_URL` missing | Add it and redeploy |
+| `db_reachable: false` | DB exists but connection failed | Recheck Neon connection string |
+| `relation "service_requests" does not exist` | Schema not applied | Run `db/schema.sql` |
+| `/admin/login` shows config warning | `ADMIN_SECRET` missing or no admin row | Set `ADMIN_SECRET` and create an `admin_users` row |
+| Notes / source fields unavailable | Older schema | Re-run / reconcile the latest schema |
+
+---
+
+## 9. Documentation discipline
+
+If schema or admin auth changes again, update all three docs together:
+- `README.md`
+- `DEPLOY.md`
+- `db/README.md`
