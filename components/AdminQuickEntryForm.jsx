@@ -71,7 +71,7 @@ export default function AdminQuickEntryForm({ action }) {
 
       {open && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-5" data-testid="admin-quick-entry-modal">
-          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
+          <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
             <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
@@ -96,8 +96,8 @@ export default function AdminQuickEntryForm({ action }) {
               </button>
             </div>
 
-            <div className="max-h-[calc(92vh-92px)] overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
-              <form action={formAction} className="grid grid-cols-1 gap-5 md:grid-cols-2" data-testid="admin-quick-entry-form">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+              <form action={formAction} className="grid grid-cols-1 gap-5 pb-6 md:grid-cols-2 sm:pb-8" data-testid="admin-quick-entry-form">
                 <Field label={t('admin.journal.fields.name')} name="customer_name" placeholder={t('admin.journal.placeholders.name')} defaultValue={values.customer_name} required />
                 <Field label={t('admin.journal.fields.phone')} name="phone" placeholder={t('admin.journal.placeholders.phone')} defaultValue={values.phone} required />
                 <Field label={t('admin.journal.fields.email')} name="email" type="email" placeholder={t('admin.journal.placeholders.email')} defaultValue={values.email} />

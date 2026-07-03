@@ -74,7 +74,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
 
       {open && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-5">
-          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
+          <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
             <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6">
               <div className="min-w-0 flex-1 pr-2 text-left">
                 <p className="text-[11px] uppercase tracking-widest2 text-gold-300">{t('admin.updateModal.overline')}</p>
@@ -92,8 +92,8 @@ export default function AdminUpdateRequestButton({ request, action }) {
               </button>
             </div>
 
-            <div className="max-h-[calc(92vh-92px)] overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
-              <form action={formAction} className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+              <form action={formAction} className="grid grid-cols-1 gap-5 pb-6 md:grid-cols-2 sm:pb-8">
                 <input type="hidden" name="id" value={request.id} />
                 <input type="hidden" name="selected_language" value={request.selected_language || 'en'} />
                 <input type="hidden" name="previous_preferred_date" value={request.preferred_date ? String(request.preferred_date).slice(0, 10) : ''} />
