@@ -2,20 +2,24 @@
 
 import React, { useActionState, useEffect, useId, useState } from 'react';
 import { MessageSquareText, ChevronDown, Loader2, NotebookPen, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { useApp } from '@/contexts/AppContext';
 
 const INITIAL_STATE = {
   ok: false,
   error: '',
+  errorKey: '',
   value: '',
 };
 
 export default function AdminRequestMessage({ request, action, compact = false }) {
+  const { t } = useApp();
   const cleanMessage = typeof request?.message === 'string' ? request.message.trim() : '';
   const initialNote = typeof request?.admin_note === 'string' ? request.admin_note : '';
   const [open, setOpen] = useState(false);
   const [noteValue, setNoteValue] = useState(initialNote);
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
   const panelId = useId();
+  const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
 
   useEffect(() => {
     setNoteValue(initialNote);
@@ -40,7 +44,7 @@ export default function AdminRequestMessage({ request, action, compact = false }
           ? 'inline-flex h-9 w-9 items-center justify-center rounded-sm border border-white/10 bg-ink-900 text-white/70 transition-colors hover:border-gold-400/50 hover:bg-white/5 hover:text-gold-300'
           : 'inline-flex w-full items-center justify-between gap-3 rounded-sm border border-white/10 bg-ink-900/80 px-4 py-3 text-left text-white/80 transition-colors hover:border-gold-400/40 hover:bg-white/[0.03]'
         }
-        title="View customer message"
+        title={t('admin.notes.viewTitle')}
       >
         <span className="inline-flex items-center gap-2 min-w-0">
           <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-300">
@@ -48,9 +52,9 @@ export default function AdminRequestMessage({ request, action, compact = false }
           </span>
           {!compact && (
             <span className="min-w-0">
-              <span className="block text-[10px] uppercase tracking-widest2 text-white/40">Customer message</span>
+              <span className="block text-[10px] uppercase tracking-widest2 text-white/40">{t('admin.notes.customerMessage')}</span>
               <span className="block truncate text-[13px] text-white/72">
-                {cleanMessage || 'Open notes'}
+                {cleanMessage || t('admin.notes.openNotes')}
               </span>
             </span>
           )}
@@ -75,7 +79,7 @@ export default function AdminRequestMessage({ request, action, compact = false }
               <>
                 <div className="mb-3 flex items-center gap-2">
                   <span className="h-px w-6 bg-gold-400" />
-                  <span className="text-[10px] uppercase tracking-widest2 text-gold-300">Customer message</span>
+                  <span className="text-[10px] uppercase tracking-widest2 text-gold-300">{t('admin.notes.customerMessage')}</span>
                 </div>
                 <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed text-white/78">
                   {cleanMessage}
@@ -88,7 +92,7 @@ export default function AdminRequestMessage({ request, action, compact = false }
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-sky-400/20 bg-sky-400/10 text-sky-200">
                   <NotebookPen className="h-3.5 w-3.5" strokeWidth={1.8} />
                 </span>
-                <span className="text-[10px] uppercase tracking-widest2 text-sky-200">Internal note</span>
+                <span className="text-[10px] uppercase tracking-widest2 text-sky-200">{t('admin.notes.internalNote')}</span>
               </div>
 
               <form action={formAction} className="space-y-3">
@@ -99,21 +103,21 @@ export default function AdminRequestMessage({ request, action, compact = false }
                   value={noteValue}
                   onChange={(event) => setNoteValue(event.target.value)}
                   className="min-h-[120px] w-full resize-y rounded-sm border border-white/10 bg-ink-900 px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors hover:border-white/20 focus-gold"
-                  placeholder="Add an internal note for this customer…"
+                  placeholder={t('admin.notes.placeholder')}
                   data-testid="admin-request-note-input"
                 />
 
-                {state?.error ? (
+                {errorText ? (
                   <div className="flex items-start gap-3 rounded-sm border border-red-500/35 bg-red-500/10 px-4 py-3 text-red-200">
                     <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.8} />
-                    <p className="text-[13px] leading-relaxed">{state.error}</p>
+                    <p className="text-[13px] leading-relaxed">{errorText}</p>
                   </div>
                 ) : null}
 
                 {state?.ok ? (
                   <div className="flex items-start gap-3 rounded-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-100">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" strokeWidth={1.8} />
-                    <p className="text-[13px] leading-relaxed">Note saved.</p>
+                    <p className="text-[13px] leading-relaxed">{t('admin.notes.saved')}</p>
                   </div>
                 ) : null}
 
@@ -125,7 +129,7 @@ export default function AdminRequestMessage({ request, action, compact = false }
                     data-testid="admin-request-note-save"
                   >
                     {pending ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} /> : <NotebookPen className="h-4 w-4" strokeWidth={2} />}
-                    Save note
+                    {t('admin.notes.save')}
                   </button>
                 </div>
               </form>

@@ -7,6 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 const INITIAL_STATE = {
   ok: false,
   error: '',
+  errorKey: '',
   values: {},
 };
 
@@ -47,6 +48,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
   const [open, setOpen] = useState(false);
   const values = state?.values && state.values.id === request.id ? state.values : request;
+  const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
 
   useEffect(() => {
     if (state?.ok) setOpen(false);
@@ -121,10 +123,10 @@ export default function AdminUpdateRequestButton({ request, action }) {
                   <Field label={t('admin.journal.fields.message')} name="message" placeholder={t('admin.journal.placeholders.message')} defaultValue={values.message || ''} />
                 </div>
 
-                {state?.error ? (
+                {errorText ? (
                   <div className="md:col-span-2 flex items-start gap-3 rounded-sm border border-red-500/35 bg-red-500/10 px-4 py-3 text-red-200">
                     <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.8} />
-                    <p className="text-[13px] leading-relaxed">{state.error}</p>
+                    <p className="text-[13px] leading-relaxed">{errorText}</p>
                   </div>
                 ) : null}
 

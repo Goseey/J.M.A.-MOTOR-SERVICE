@@ -7,6 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 const INITIAL_STATE = {
   ok: false,
   error: '',
+  errorKey: '',
   values: {},
 };
 
@@ -45,6 +46,7 @@ export default function AdminQuickEntryForm({ action }) {
   const { t } = useApp();
   const [open, setOpen] = useState(false);
   const values = state?.values || {};
+  const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
 
   useEffect(() => {
     if (state?.ok) setOpen(false);
@@ -103,10 +105,10 @@ export default function AdminQuickEntryForm({ action }) {
                   <Field label={t('admin.journal.fields.message')} name="message" placeholder={t('admin.journal.placeholders.message')} defaultValue={values.message} />
                 </div>
 
-                {state?.error ? (
+                {errorText ? (
                   <div className="md:col-span-2 flex items-start gap-3 rounded-sm border border-red-500/35 bg-red-500/10 px-4 py-3 text-red-200" data-testid="admin-quick-entry-error">
                     <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.8} />
-                    <p className="text-[13px] leading-relaxed">{state.error}</p>
+                    <p className="text-[13px] leading-relaxed">{errorText}</p>
                   </div>
                 ) : null}
 
@@ -123,7 +125,7 @@ export default function AdminQuickEntryForm({ action }) {
                     onClick={() => setOpen(false)}
                     className="inline-flex h-12 items-center justify-center rounded-sm border border-white/10 px-5 text-[13px] font-semibold tracking-wide text-white/75 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
                   >
-                    Close
+                    {t('admin.journal.close')}
                   </button>
 
                   <button

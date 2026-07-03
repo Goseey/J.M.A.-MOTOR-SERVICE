@@ -35,7 +35,8 @@ export default async function AdminPage({ searchParams }) {
   }
 
   const data = await getAdminServiceRequests(filters);
-  const t = makeT(filters.lang || 'en');
+  const lang = filters.lang || 'en';
+  const t = makeT(lang);
 
   const rangeStart = data.total === 0 ? 0 : (data.page - 1) * data.pageSize + 1;
   const rangeEnd = data.total === 0 ? 0 : Math.min(data.page * data.pageSize, data.total);
@@ -58,11 +59,11 @@ export default async function AdminPage({ searchParams }) {
     };
 
     if (!isDbConfigured()) {
-      return { ok: false, error: t('admin.db.notConfigured'), values };
+      return { ok: false, errorKey: 'admin.db.notConfigured', values };
     }
 
     if (!values.customer_name || !values.phone || !values.car_make_model || !values.service_needed) {
-      return { ok: false, error: t('admin.journal.errors.generic'), values };
+      return { ok: false, errorKey: 'admin.journal.errors.generic', values };
     }
 
     try {
@@ -77,7 +78,7 @@ export default async function AdminPage({ searchParams }) {
       });
     } catch (error) {
       console.error('[admin] Failed to create admin entry:', error?.message || error);
-      return { ok: false, error: t('admin.journal.errors.generic'), values };
+      return { ok: false, errorKey: 'admin.journal.errors.generic', values };
     }
 
     revalidatePath('/admin');
@@ -125,11 +126,11 @@ export default async function AdminPage({ searchParams }) {
     };
 
     if (!id || !isDbConfigured()) {
-      return { ok: false, error: t('admin.journal.errors.generic'), values };
+      return { ok: false, errorKey: 'admin.journal.errors.generic', values };
     }
 
     if (!values.customer_name || !values.phone || !values.car_make_model || !values.service_needed) {
-      return { ok: false, error: t('admin.journal.errors.generic'), values };
+      return { ok: false, errorKey: 'admin.journal.errors.generic', values };
     }
 
     try {
@@ -151,7 +152,7 @@ export default async function AdminPage({ searchParams }) {
       }
     } catch (error) {
       console.error('[admin] Failed to update service request:', error?.message || error);
-      return { ok: false, error: t('admin.journal.errors.generic'), values };
+      return { ok: false, errorKey: 'admin.journal.errors.generic', values };
     }
 
     revalidatePath('/admin');
@@ -169,17 +170,17 @@ export default async function AdminPage({ searchParams }) {
     const adminNote = String(formData.get('admin_note') || '').trim();
 
     if (!id || !isDbConfigured()) {
-      return { ok: false, error: 'Could not save note.', value: adminNote };
+      return { ok: false, errorKey: 'admin.notes.errors.save', value: adminNote };
     }
 
     try {
       const result = await updateServiceRequestAdminNote(id, adminNote || null);
       if (!result.supported) {
-        return { ok: false, error: 'Database note field is not ready yet. Run the latest schema update first.', value: adminNote };
+        return { ok: false, errorKey: 'admin.notes.errors.schema', value: adminNote };
       }
     } catch (error) {
       console.error('[admin] Failed to update admin note:', error?.message || error);
-      return { ok: false, error: 'Could not save note.', value: adminNote };
+      return { ok: false, errorKey: 'admin.notes.errors.save', value: adminNote };
     }
 
     revalidatePath('/admin');
