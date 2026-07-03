@@ -3,6 +3,7 @@
 import React, { useActionState, useEffect, useState } from 'react';
 import { CheckCircle2, Loader2, Pencil, ShieldAlert, X } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import useBodyScrollLock from '@/hooks/useBodyScrollLock';
 
 const INITIAL_STATE = {
   ok: false,
@@ -49,6 +50,8 @@ export default function AdminUpdateRequestButton({ request, action }) {
   const [open, setOpen] = useState(false);
   const values = state?.values && state.values.id === request.id ? state.values : request;
   const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (state?.ok) setOpen(false);
