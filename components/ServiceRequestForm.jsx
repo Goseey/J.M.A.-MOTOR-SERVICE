@@ -205,10 +205,17 @@ export default function ServiceRequestForm() {
               />
             </FormField>
 
-            <div className="md:col-span-2 text-[12px] text-white/55 leading-relaxed border-l-2 border-gold-400/50 pl-4" data-testid="form-disclaimer">
-              {t('form.disclaimer1')}{' '}
-              <strong className="text-white">{t('form.disclaimer2')}</strong>{' '}
-              {t('form.disclaimer3')}
+            <div className="md:col-span-2 space-y-3">
+              <div className="text-[12px] text-white/55 leading-relaxed border-l-2 border-gold-400/50 pl-4" data-testid="form-disclaimer">
+                {t('form.disclaimer1')}{' '}
+                <strong className="text-white">{t('form.disclaimer2')}</strong>{' '}
+                {t('form.disclaimer3')}
+              </div>
+
+              <div className="text-[12px] text-white/55 leading-relaxed border-l-2 border-amber-400/70 pl-4" data-testid="form-disclaimer-reschedule">
+                <strong className="text-amber-200">{t('form.rescheduleNotice.strong')}</strong>{' '}
+                {t('form.rescheduleNotice.text')}
+              </div>
             </div>
 
             {status === 'error' && serverError && (
