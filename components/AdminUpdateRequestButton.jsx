@@ -60,13 +60,13 @@ export default function AdminUpdateRequestButton({ request, action }) {
   return (
     <>
       <div className="lg:text-right">
-        <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">Update</p>
+        <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{t('admin.actions.update')}</p>
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-sky-400/20 bg-sky-500/10 text-sky-200 transition-colors hover:border-sky-400/40 hover:bg-sky-500/15"
           data-testid={`admin-update-${request.id}`}
-          title="Update request"
+          title={t('admin.updateModal.triggerTitle')}
         >
           <Pencil className="h-4 w-4" strokeWidth={1.8} />
         </button>
@@ -77,10 +77,10 @@ export default function AdminUpdateRequestButton({ request, action }) {
           <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-sm border border-white/10 bg-ink-950 shadow-[0_30px_120px_rgba(0,0,0,0.6)]">
             <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6">
               <div className="min-w-0 flex-1 pr-2 text-left">
-                <p className="text-[11px] uppercase tracking-widest2 text-gold-300">Admin update</p>
-                <h2 className="mt-1 font-display text-xl font-bold text-white sm:text-2xl">Update service request</h2>
+                <p className="text-[11px] uppercase tracking-widest2 text-gold-300">{t('admin.updateModal.overline')}</p>
+                <h2 className="mt-1 font-display text-xl font-bold text-white sm:text-2xl">{t('admin.updateModal.headline')}</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-                  Edit client details, service information, status, and preferred date. If the date changes and the customer has an email, they will receive an update email automatically.
+                  {t('admin.updateModal.description')}
                 </p>
               </div>
               <button
@@ -136,7 +136,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
                 {state?.ok ? (
                   <div className="md:col-span-2 flex items-start gap-3 rounded-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-100">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" strokeWidth={1.8} />
-                    <p className="text-[13px] leading-relaxed">Request updated successfully.</p>
+                    <p className="text-[13px] leading-relaxed">{t('admin.updateModal.success')}</p>
                   </div>
                 ) : null}
 
@@ -146,7 +146,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
                     onClick={() => setOpen(false)}
                     className="inline-flex h-12 items-center justify-center rounded-sm border border-white/10 px-5 text-[13px] font-semibold tracking-wide text-white/75 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
                   >
-                    Close
+                    {t('admin.journal.close')}
                   </button>
 
                   <button
@@ -155,7 +155,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-gold-400 px-5 text-[13px] font-semibold tracking-wide text-ink-950 transition-colors hover:bg-gold-300 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pending ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} /> : <Pencil className="h-4 w-4" strokeWidth={2} />}
-                    Save changes
+                    {t('admin.updateModal.save')}
                   </button>
                 </div>
               </form>
