@@ -465,10 +465,10 @@ function EmptyState({ dbConfigured, dbReachable, t }) {
 
 function Cell({ label, primary, secondary, primaryTitle }) {
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 overflow-hidden">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
-      <p className="text-[14px] text-white/85 leading-relaxed break-words" title={primaryTitle || primary}>{primary}</p>
-      {secondary && <p className="mt-1 text-[12px] text-white/45 break-all">{secondary}</p>}
+      <p className="text-[14px] text-white/85 leading-relaxed break-words [overflow-wrap:anywhere]" title={primaryTitle || primary}>{primary}</p>
+      {secondary && <p className="mt-1 text-[12px] text-white/45 break-words [overflow-wrap:anywhere]">{secondary}</p>}
     </div>
   );
 }
@@ -485,11 +485,11 @@ function ClientCell({ label, primary, secondary, request, action, source, t }) {
     <div className="min-w-0">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
 
-      <div className="flex min-w-0 items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-[14px] text-white/85 leading-relaxed break-words">{primary}</p>
-          {secondary && <p className="mt-1 text-[12px] text-white/45 break-all">{secondary}</p>}
-          <div className="mt-2">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <p className="text-[14px] text-white/85 leading-relaxed break-words [overflow-wrap:anywhere]">{primary}</p>
+          {secondary && <p className="mt-1 text-[12px] text-white/45 break-words [overflow-wrap:anywhere]">{secondary}</p>}
+          <div className="mt-2 flex items-center gap-2">
             <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${sourceTone}`}>
               {sourceLabel}
             </span>
@@ -497,7 +497,7 @@ function ClientCell({ label, primary, secondary, request, action, source, t }) {
         </div>
 
         {(hasMessage || hasNote) && (
-          <div className="hidden lg:block shrink-0">
+          <div className="hidden lg:flex shrink-0 self-start">
             <AdminRequestMessage request={request} action={action} compact indicatorMode="split" />
           </div>
         )}
