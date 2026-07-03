@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useActionState, useEffect, useId, useState } from 'react';
+import React, { useActionState, useEffect, useId, useRef, useState } from 'react';
 import { MessageSquareText, ChevronDown, Loader2, NotebookPen, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 
@@ -17,6 +17,7 @@ export default function AdminRequestMessage({ request, action, compact = false, 
   const initialNote = typeof request?.admin_note === 'string' ? request.admin_note : '';
   const [open, setOpen] = useState(false);
   const [noteValue, setNoteValue] = useState(initialNote);
+  const rootRef = useRef(null);
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
   const panelId = useId();
   const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
@@ -31,11 +32,29 @@ export default function AdminRequestMessage({ request, action, compact = false, 
     if (state?.ok) setNoteValue(state.value ?? '');
   }, [state?.ok, state?.value]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+    };
+  }, [open]);
+
   if (!hasCustomerMessage && !compact) return null;
   if (!hasCustomerMessage && compact && !hasAdminNote) return null;
 
   return (
-    <div className="min-w-0" data-testid="admin-request-message">
+    <div ref={rootRef} className="min-w-0" data-testid="admin-request-message">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
