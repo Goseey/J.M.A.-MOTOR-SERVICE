@@ -220,24 +220,13 @@ export default async function AdminPage({ searchParams }) {
               <StatusBadge dbConfigured={data.dbConfigured} dbReachable={data.dbReachable} t={t} />
             </div>
 
-            <AdminFilters filters={filters} t={t} />
+            <AdminControls filters={filters} t={t} total={data.total} createAction={createAdminEntryAction} />
           </div>
         </div>
       </section>
 
       <section id="requests" className="bg-ink-900" data-testid="admin-table-section">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10 py-8 sm:py-10">
-          <div className="flex items-center justify-between gap-4 mb-5">
-            <div className="text-sm text-white/55" data-testid="admin-results-count">
-              {t('admin.stats.showingClients')}{' '}
-              <span className="text-white font-semibold">{data.total}</span>{' '}
-              {data.total === 1 ? t('admin.stats.clientSuffix') : t('admin.stats.clientsSuffix')}
-            </div>
-            <div className="flex items-center gap-3">
-              <AdminQuickEntryForm action={createAdminEntryAction} />
-            </div>
-          </div>
-
           <div className="border border-white/10 rounded-sm overflow-hidden bg-ink-950 shadow-ring" data-testid="admin-table-wrap">
             <div className="hidden lg:grid grid-cols-[1.02fr_1.45fr_0.95fr_1.1fr_0.78fr_0.82fr_0.92fr_64px_64px] gap-4 px-5 py-4 border-b border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-widest2 text-white/40">
               <span>{t('admin.table.requestId')}</span>
@@ -318,44 +307,45 @@ export default async function AdminPage({ searchParams }) {
   );
 }
 
-function AdminFilters({ filters, t }) {
+function AdminControls({ filters, t, total, createAction }) {
   return (
-    <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(240px,1.15fr)_minmax(240px,1fr)_minmax(190px,0.8fr)_minmax(190px,0.8fr)_minmax(132px,148px)]" data-testid="admin-filters-bar">
-      <AdminAutoSubmitFilters />
-      <label className="flex h-14 items-center gap-3 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
-        <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
-        <input
-          type="text"
-          name="q"
-          defaultValue={filters.q}
-          placeholder={t('admin.filters.searchPlaceholder')}
-          className="w-full bg-transparent border-0 outline-none text-[14px] text-white placeholder:text-white/30"
-          data-testid="admin-search-input"
-        />
-      </label>
+    <div className="rounded-sm border border-white/10 bg-white/[0.02] p-4 sm:p-5" data-testid="admin-controls-panel">
+      <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(240px,1.15fr)_minmax(240px,1fr)_minmax(190px,0.8fr)_minmax(190px,0.8fr)_minmax(132px,148px)]" data-testid="admin-filters-bar">
+        <AdminAutoSubmitFilters />
+        <label className="flex h-14 items-center gap-3 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
+          <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
+          <input
+            type="text"
+            name="q"
+            defaultValue={filters.q}
+            placeholder={t('admin.filters.searchPlaceholder')}
+            className="w-full bg-transparent border-0 outline-none text-[14px] text-white placeholder:text-white/30"
+            data-testid="admin-search-input"
+          />
+        </label>
 
-      <label className="flex h-14 items-center gap-3 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
-        <ListFilter className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
-        <select
-          name="sort"
-          defaultValue={filters.sort}
-          className="w-full min-w-0 bg-transparent border-0 outline-none text-[14px] text-white cursor-pointer"
-          data-testid="admin-sort-select"
-        >
-          <option value="desc" className="bg-ink-900 text-white">{t('admin.filters.newest')}</option>
-          <option value="asc" className="bg-ink-900 text-white">{t('admin.filters.oldest')}</option>
-        </select>
-        {filters.sort === 'desc' ? (
-          <ArrowDownAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
-        ) : (
-          <ArrowUpAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
-        )}
-      </label>
+        <label className="flex h-14 items-center gap-3 px-4 py-2 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-sort-field">
+          <ListFilter className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />
+          <select
+            name="sort"
+            defaultValue={filters.sort}
+            className="w-full min-w-0 bg-transparent border-0 outline-none text-[14px] text-white cursor-pointer"
+            data-testid="admin-sort-select"
+          >
+            <option value="desc" className="bg-ink-900 text-white">{t('admin.filters.newest')}</option>
+            <option value="asc" className="bg-ink-900 text-white">{t('admin.filters.oldest')}</option>
+          </select>
+          {filters.sort === 'desc' ? (
+            <ArrowDownAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
+          ) : (
+            <ArrowUpAZ className="h-4 w-4 text-white/40 shrink-0" strokeWidth={1.8} />
+          )}
+        </label>
 
-      <DateField label={t('admin.filters.dateFrom')} name="from" value={filters.from} testid="admin-date-from" />
-      <DateField label={t('admin.filters.dateTo')} name="to" value={filters.to} testid="admin-date-to" />
+        <DateField label={t('admin.filters.dateFrom')} name="from" value={filters.from} testid="admin-date-from" />
+        <DateField label={t('admin.filters.dateTo')} name="to" value={filters.to} testid="admin-date-to" />
 
-      <a
+        <a
           href={`/admin${filters.lang === 'so' ? '?lang=so' : ''}`}
           className="inline-flex h-14 w-full min-w-0 items-center justify-center gap-2 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/80 transition-colors hover:border-white/20 hover:bg-ink-800 hover:text-white"
           data-testid="admin-reset-filters"
@@ -363,7 +353,20 @@ function AdminFilters({ filters, t }) {
           <RotateCcw className="h-4 w-4 text-gold-300" strokeWidth={1.9} />
           {t('admin.filters.reset')}
         </a>
-    </form>
+      </form>
+
+      <div className="mt-4 flex items-center justify-between gap-4 border-t border-white/10 pt-4" data-testid="admin-results-toolbar">
+        <div className="text-sm text-white/55" data-testid="admin-results-count">
+          {t('admin.stats.showingClients')}{' '}
+          <span className="text-white font-semibold">{total}</span>{' '}
+          {total === 1 ? t('admin.stats.clientSuffix') : t('admin.stats.clientsSuffix')}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <AdminQuickEntryForm action={createAction} />
+        </div>
+      </div>
+    </div>
   );
 }
 
