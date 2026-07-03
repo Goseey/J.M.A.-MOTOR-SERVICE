@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { isDbConfigured, insertServiceRequest, markEmailSent, sql } from '@/lib/db';
+import { checkApiRateLimit, getClientIp } from '@/lib/rate-limit';
+import { ADMIN_SESSION_COOKIE, verifyAdminSessionValue } from '@/lib/admin-auth';
+
+// Public booking endpoint: at most 5 submissions per IP per 10 minutes.
+const SUBMIT_LIMIT = 5;
+const SUBMIT_WINDOW_SECONDS = 10 * 60;
 
 // Node.js runtime is required for the Neon driver and the optional Resend SDK.
 export const runtime = 'nodejs';
@@ -111,14 +117,16 @@ function getCustomerEmailCopy(doc) {
 }
 
 function makeAdminEmailHtml(doc) {
+  // Every user-controlled value is escaped — form fields must never be able to
+  // inject HTML into the emails we send.
   const rows = [
-    ['Request ID', doc.id],
-    ['Name', doc.customer_name],
-    ['Phone', doc.phone],
-    ['Email', doc.email],
-    ['Car (make & model)', doc.car_make_model],
-    ['Service needed', doc.service_needed],
-    ['Preferred date', formatDate(doc.preferred_date)],
+    ['Request ID', escapeHtml(doc.id)],
+    ['Name', escapeHtml(doc.customer_name)],
+    ['Phone', escapeHtml(doc.phone)],
+    ['Email', escapeHtml(doc.email)],
+    ['Car (make & model)', escapeHtml(doc.car_make_model)],
+    ['Service needed', escapeHtml(doc.service_needed)],
+    ['Preferred date', escapeHtml(formatDate(doc.preferred_date))],
     ['Language', doc.selected_language === 'so' ? 'Af-Soomaali' : 'English'],
     ['Message', doc.message ? escapeHtml(doc.message).replace(/\n/g, '<br/>') : '—'],
   ];
@@ -148,13 +156,13 @@ function makeAdminEmailHtml(doc) {
 function makeCustomerEmailHtml(doc) {
   const copy = getCustomerEmailCopy(doc);
   const rows = [
-    [copy.labels.requestId, doc.id],
-    [copy.labels.name, doc.customer_name],
-    [copy.labels.phone, doc.phone],
-    [copy.labels.email, doc.email],
-    [copy.labels.car, doc.car_make_model],
-    [copy.labels.service, doc.service_needed],
-    [copy.labels.preferredDate, formatDate(doc.preferred_date)],
+    [copy.labels.requestId, escapeHtml(doc.id)],
+    [copy.labels.name, escapeHtml(doc.customer_name)],
+    [copy.labels.phone, escapeHtml(doc.phone)],
+    [copy.labels.email, escapeHtml(doc.email)],
+    [copy.labels.car, escapeHtml(doc.car_make_model)],
+    [copy.labels.service, escapeHtml(doc.service_needed)],
+    [copy.labels.preferredDate, escapeHtml(formatDate(doc.preferred_date))],
     [copy.labels.message, doc.message ? escapeHtml(doc.message).replace(/\n/g, '<br/>') : '—'],
   ];
 
@@ -206,7 +214,7 @@ async function sendEmails(doc) {
         to: [businessInbox],
         subject: `New service request — ${doc.customer_name} (${doc.car_make_model})`,
         html: makeAdminEmailHtml(doc),
-        reply_to: customerEmail,
+        replyTo: customerEmail || undefined,
       }),
     ];
 
@@ -217,7 +225,7 @@ async function sendEmails(doc) {
           to: [customerEmail],
           subject: customerMail.subject,
           html: customerMail.html,
-          reply_to: businessInbox,
+          replyTo: businessInbox,
         }),
       );
     }
@@ -231,6 +239,15 @@ async function sendEmails(doc) {
 }
 
 export async function POST(request) {
+  const ip = getClientIp(request.headers);
+  const { allowed } = await checkApiRateLimit('service-request', ip, SUBMIT_LIMIT, SUBMIT_WINDOW_SECONDS);
+  if (!allowed) {
+    return NextResponse.json(
+      { detail: 'Too many requests. Please try again in a few minutes or call us directly.' },
+      { status: 429 },
+    );
+  }
+
   let body;
   try {
     body = await request.json();
@@ -307,7 +324,15 @@ export async function POST(request) {
   );
 }
 
-export async function GET() {
+export async function GET(request) {
+  // Public health check: no configuration details for anonymous callers.
+  const session = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const isAdmin = await verifyAdminSessionValue(session);
+
+  if (!isAdmin) {
+    return NextResponse.json({ status: 'ok', service: 'jma-motor-service' });
+  }
+
   let db_reachable = false;
   if (isDbConfigured()) {
     try {

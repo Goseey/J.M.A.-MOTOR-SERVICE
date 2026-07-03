@@ -123,11 +123,15 @@ Current stack on this commit:
 | `ADMIN_SECRET` | Required to sign admin session cookies |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp number for public CTA buttons |
 
-Optional setup helpers:
-- `ADMIN_BOOTSTRAP_EMAIL`
-- `ADMIN_BOOTSTRAP_PASSWORD`
+Create the first admin user with:
 
-Those helper values are **not** the runtime login mechanism by themselves. Real admin login checks use rows stored in `admin_users` with bcrypt password hashes.
+```bash
+DATABASE_URL=... node scripts/create-admin.mjs admin@example.com 'StrongPassword123'
+```
+
+Admin login checks use rows stored in `admin_users` with bcrypt password hashes.
+Login is brute-force protected: 10 failed attempts from one IP trigger a 1 minute
+block that doubles on every repeat offence, capped at 1 hour.
 
 ---
 

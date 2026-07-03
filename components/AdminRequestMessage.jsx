@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useActionState, useEffect, useId, useRef, useState } from 'react';
+import React, { useActionState, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { MessageSquareText, ChevronDown, Loader2, NotebookPen, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 
@@ -17,7 +17,9 @@ export default function AdminRequestMessage({ request, action, compact = false, 
   const initialNote = typeof request?.admin_note === 'string' ? request.admin_note : '';
   const [open, setOpen] = useState(false);
   const [noteValue, setNoteValue] = useState(initialNote);
+  const [panelPos, setPanelPos] = useState(null);
   const rootRef = useRef(null);
+  const triggerRef = useRef(null);
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
   const panelId = useId();
   const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
@@ -31,6 +33,48 @@ export default function AdminRequestMessage({ request, action, compact = false, 
   useEffect(() => {
     if (state?.ok) setNoteValue(state.value ?? '');
   }, [state?.ok, state?.value]);
+
+  // Compact popover positioning: the table wrapper is overflow-hidden, so an
+  // absolutely-positioned panel gets clipped and can run off-screen. Instead we
+  // render the panel with position:fixed and clamp it inside the viewport —
+  // flipping above the trigger when there isn't enough room below.
+  const computePanelPos = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger || typeof window === 'undefined') return;
+
+    const rect = trigger.getBoundingClientRect();
+    const margin = 12; // minimum gap to every viewport edge
+    const gap = 10; // gap between trigger and panel
+
+    const width = Math.min(420, window.innerWidth - margin * 2);
+    const left = Math.max(margin, Math.min(rect.right - width, window.innerWidth - width - margin));
+
+    const spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+    const spaceAbove = rect.top - gap - margin;
+    const openUp = spaceBelow < 280 && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(180, Math.min(560, openUp ? spaceAbove : spaceBelow));
+
+    const next = { left: Math.round(left), width: Math.round(width), maxHeight: Math.round(maxHeight) };
+    if (openUp) {
+      next.bottom = Math.round(window.innerHeight - rect.top + gap);
+    } else {
+      next.top = Math.round(rect.bottom + gap);
+    }
+    setPanelPos(next);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open || !compact) return undefined;
+
+    computePanelPos();
+    window.addEventListener('resize', computePanelPos);
+    window.addEventListener('scroll', computePanelPos, true);
+
+    return () => {
+      window.removeEventListener('resize', computePanelPos);
+      window.removeEventListener('scroll', computePanelPos, true);
+    };
+  }, [open, compact, computePanelPos]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -56,6 +100,7 @@ export default function AdminRequestMessage({ request, action, compact = false, 
   return (
     <div ref={rootRef} className={`min-w-0 ${compact ? 'relative' : ''}`} data-testid="admin-request-message">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
@@ -107,12 +152,21 @@ export default function AdminRequestMessage({ request, action, compact = false, 
       <div
         id={panelId}
         className={compact
-          ? `${open ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'} absolute right-0 top-[calc(100%+12px)] z-40 w-[min(420px,calc(100vw-48px))] transition-all duration-200 ease-out`
+          ? `${open && panelPos ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'} fixed z-50 transition-opacity duration-200 ease-out`
           : `grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`
         }
+        style={compact && panelPos ? {
+          left: panelPos.left,
+          width: panelPos.width,
+          ...(panelPos.top !== undefined ? { top: panelPos.top } : {}),
+          ...(panelPos.bottom !== undefined ? { bottom: panelPos.bottom } : {}),
+        } : undefined}
         data-testid="admin-request-message-panel"
       >
-        <div className={compact ? '' : 'overflow-hidden'}>
+        <div
+          className={compact ? 'overflow-y-auto overscroll-contain rounded-sm' : 'overflow-hidden'}
+          style={compact && panelPos ? { maxHeight: panelPos.maxHeight } : undefined}
+        >
           <div className="rounded-sm border border-white/10 bg-ink-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)] p-4 sm:p-5">
             {cleanMessage ? (
               <>

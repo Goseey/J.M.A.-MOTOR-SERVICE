@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft, LockKeyhole, ShieldAlert } from 'lucide-react';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { makeT } from '@/lib/i18n';
 import {
@@ -11,6 +11,12 @@ import {
   verifyAdminSessionValue,
 } from '@/lib/admin-auth';
 import { authenticateAdminUser } from '@/lib/admin-password';
+import {
+  checkLoginAllowed,
+  getClientIp,
+  registerLoginFailure,
+  registerLoginSuccess,
+} from '@/lib/rate-limit';
 import { isDbConfigured } from '@/lib/db';
 
 export const metadata = {
@@ -124,6 +130,15 @@ export default async function AdminLoginPage({ searchParams }) {
                   </div>
                 ) : null}
 
+                {params?.error === '2' ? (
+                  <div className="rounded-sm border border-red-500/35 bg-red-500/10 text-red-200 px-4 py-3 text-sm" data-testid="admin-login-rate-limited">
+                    {t('admin.login.tooManyAttempts').replace(
+                      '{minutes}',
+                      String(Math.max(1, Math.ceil((Number.parseInt(params?.wait, 10) || 60) / 60))),
+                    )}
+                  </div>
+                ) : null}
+
                 <button
                   type="submit"
                   className="inline-flex items-center justify-center gap-2 h-12 px-5 w-full rounded-sm bg-gold-400 hover:bg-gold-300 text-ink-950 font-semibold tracking-wide transition-colors shadow-gold"
@@ -155,10 +170,24 @@ async function loginAction(formData) {
     redirect(`/admin/login?error=1&lang=${lang}&next=${encodeURIComponent(nextPath)}`);
   }
 
+  // Brute-force protection: after 10 failed attempts an IP is blocked for
+  // 1 minute; each following block doubles (2, 4, 8, ... capped at 60 min).
+  const ip = getClientIp(await headers());
+  const { allowed, retryAfterSeconds } = await checkLoginAllowed(ip);
+  if (!allowed) {
+    redirect(`/admin/login?error=2&wait=${retryAfterSeconds}&lang=${lang}&next=${encodeURIComponent(nextPath)}`);
+  }
+
   const admin = await authenticateAdminUser(email, password);
   if (!admin) {
+    const failure = await registerLoginFailure(ip);
+    if (failure.blocked) {
+      redirect(`/admin/login?error=2&wait=${failure.retryAfterSeconds}&lang=${lang}&next=${encodeURIComponent(nextPath)}`);
+    }
     redirect(`/admin/login?error=1&lang=${lang}&next=${encodeURIComponent(nextPath)}`);
   }
+
+  await registerLoginSuccess(ip);
 
   const cookieStore = await cookies();
   cookieStore.set(

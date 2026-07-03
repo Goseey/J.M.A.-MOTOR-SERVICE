@@ -62,18 +62,15 @@ Health check:
 curl https://<your-domain>.vercel.app/api/service-requests
 ```
 
-Expected result shape:
+Anonymous callers get a minimal response:
 
 ```json
-{
-  "status": "ok",
-  "service": "jma-motor-service",
-  "db_configured": true,
-  "db_reachable": true,
-  "email_configured": false,
-  "time": "2026-..."
-}
+{ "status": "ok", "service": "jma-motor-service" }
 ```
+
+The detailed shape (`db_configured`, `db_reachable`, `email_configured`, `time`)
+is only returned when the request carries a valid admin session cookie —
+configuration details are not exposed publicly.
 
 Then create a test booking and verify rows in Neon.
 
@@ -86,13 +83,20 @@ The current admin area uses:
 - bcrypt password hashes
 - signed session cookies
 
-### Generate a bcrypt hash
+### Create the first admin (recommended)
+
+```bash
+DATABASE_URL="postgresql://..." node scripts/create-admin.mjs admin@example.com 'StrongPassword123'
+```
+
+The script hashes the password with bcrypt and upserts the row (re-running it
+updates the password). You can create additional admins the same way.
+
+### Or manually via SQL
 
 ```bash
 node -e "const { hashSync } = require('bcryptjs'); console.log(hashSync('ChangeMe123!', 12));"
 ```
-
-### Insert the first admin
 
 ```sql
 INSERT INTO admin_users (email, password_hash, display_name)
@@ -103,8 +107,6 @@ VALUES (
 );
 ```
 
-You can insert additional admins the same way.
-
 ### Required env for login
 
 ```bash
@@ -114,7 +116,9 @@ ADMIN_SECRET=choose-a-long-random-secret
 Important:
 - `ADMIN_SECRET` signs the cookie
 - the actual password check uses the bcrypt hash stored in `admin_users`
-- helper envs like `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` are optional setup aids, not the live auth source
+- sessions expire after 12 hours (enforced server-side)
+- login is rate limited: 10 failed attempts from one IP → 1 minute block,
+  doubling on every subsequent block up to 1 hour (`login_throttle` table)
 
 ---
 

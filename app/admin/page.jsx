@@ -644,7 +644,7 @@ async function sendBookingUpdateEmail(doc) {
       from,
       to: [customerEmail],
       subject,
-      reply_to: businessInbox,
+      replyTo: businessInbox,
       html: `<div style="background:#050505;padding:32px 0;font-family:Arial,sans-serif;">
         <table role="presentation" width="600" align="center" cellspacing="0" cellpadding="0" style="background:#121212;border:1px solid #2a2a2a;border-radius:4px;">
           <tr><td style="padding:24px 24px 0 24px;">

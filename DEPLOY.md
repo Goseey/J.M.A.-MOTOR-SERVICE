@@ -29,9 +29,11 @@ Add these in **Vercel → Project → Settings → Environment Variables**.
 | `ADMIN_SECRET` | Signs admin session cookies |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Public WhatsApp CTA number |
 
-Optional setup helpers:
-- `ADMIN_BOOTSTRAP_EMAIL`
-- `ADMIN_BOOTSTRAP_PASSWORD`
+Create the first admin user with:
+
+```bash
+DATABASE_URL=... node scripts/create-admin.mjs admin@example.com 'StrongPassword123'
+```
 
 After changing env vars, **redeploy**. Vercel only applies new env values to new deployments.
 
@@ -87,17 +89,11 @@ The login flow:
 curl https://<your-domain>.vercel.app/api/service-requests
 ```
 
-Expected shape:
+Expected shape (anonymous callers see only the minimal response; the detailed
+fields require a valid admin session cookie):
 
 ```json
-{
-  "status": "ok",
-  "service": "jma-motor-service",
-  "db_configured": true,
-  "db_reachable": true,
-  "email_configured": false,
-  "time": "2026-..."
-}
+{ "status": "ok", "service": "jma-motor-service" }
 ```
 
 ### Test booking request

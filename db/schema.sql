@@ -87,3 +87,25 @@ CREATE TRIGGER service_requests_updated_at_trg
   BEFORE UPDATE ON service_requests
   FOR EACH ROW
   EXECUTE FUNCTION set_updated_at_timestamp();
+
+-- ----------------------------------------------------------------------------
+-- Rate limiting (login brute-force protection + public API limits)
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS login_throttle (
+  ip            TEXT         PRIMARY KEY,
+  fail_count    INTEGER      NOT NULL DEFAULT 0,
+  block_level   INTEGER      NOT NULL DEFAULT 0,
+  blocked_until TIMESTAMPTZ,
+  updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rate_limit_events (
+  id         BIGSERIAL    PRIMARY KEY,
+  scope      TEXT         NOT NULL,
+  ip         TEXT         NOT NULL,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS rate_limit_events_lookup_idx
+  ON rate_limit_events (scope, ip, created_at);
