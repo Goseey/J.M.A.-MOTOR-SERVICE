@@ -11,7 +11,7 @@ const INITIAL_STATE = {
   value: '',
 };
 
-export default function AdminRequestMessage({ request, action, compact = false }) {
+export default function AdminRequestMessage({ request, action, compact = false, indicatorMode = 'single' }) {
   const { t } = useApp();
   const cleanMessage = typeof request?.message === 'string' ? request.message.trim() : '';
   const initialNote = typeof request?.admin_note === 'string' ? request.admin_note : '';
@@ -20,6 +20,8 @@ export default function AdminRequestMessage({ request, action, compact = false }
   const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
   const panelId = useId();
   const errorText = state?.errorKey ? t(state.errorKey) : state?.error;
+  const hasCustomerMessage = cleanMessage.length > 0;
+  const hasAdminNote = initialNote.trim().length > 0;
 
   useEffect(() => {
     setNoteValue(initialNote);
@@ -29,8 +31,8 @@ export default function AdminRequestMessage({ request, action, compact = false }
     if (state?.ok) setNoteValue(state.value ?? '');
   }, [state?.ok, state?.value]);
 
-  if (!cleanMessage && !compact) return null;
-  if (!cleanMessage && compact && !initialNote) return null;
+  if (!hasCustomerMessage && !compact) return null;
+  if (!hasCustomerMessage && compact && !hasAdminNote) return null;
 
   return (
     <div className="min-w-0" data-testid="admin-request-message">
@@ -41,15 +43,30 @@ export default function AdminRequestMessage({ request, action, compact = false }
         aria-controls={panelId}
         data-testid="admin-request-message-toggle"
         className={compact
-          ? 'inline-flex h-9 w-9 items-center justify-center rounded-sm border border-white/10 bg-ink-900 text-white/70 transition-colors hover:border-gold-400/50 hover:bg-white/5 hover:text-gold-300'
+          ? 'inline-flex items-center gap-1.5 rounded-sm transition-colors'
           : 'inline-flex w-full items-center justify-between gap-3 rounded-sm border border-white/10 bg-ink-900/80 px-4 py-3 text-left text-white/80 transition-colors hover:border-gold-400/40 hover:bg-white/[0.03]'
         }
         title={t('admin.notes.viewTitle')}
       >
         <span className="inline-flex items-center gap-2 min-w-0">
-          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-300">
-            <MessageSquareText className="h-4 w-4" strokeWidth={1.8} />
-          </span>
+          {compact && indicatorMode === 'split' ? (
+            <>
+              {hasCustomerMessage ? (
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-sky-400/25 bg-sky-400/10 text-sky-200 transition-colors hover:border-sky-300/45 hover:bg-sky-400/15" title={t('admin.notes.customerMessage')}>
+                  <MessageSquareText className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+              ) : null}
+              {hasAdminNote ? (
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-amber-400/25 bg-amber-400/10 text-amber-200 transition-colors hover:border-amber-300/45 hover:bg-amber-400/15" title={t('admin.notes.internalNote')}>
+                  <NotebookPen className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+              ) : null}
+            </>
+          ) : (
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-gold-400/20 bg-gold-400/10 text-gold-300">
+              <MessageSquareText className="h-4 w-4" strokeWidth={1.8} />
+            </span>
+          )}
           {!compact && (
             <span className="min-w-0">
               <span className="block text-[10px] uppercase tracking-widest2 text-white/40">{t('admin.notes.customerMessage')}</span>
