@@ -18,6 +18,7 @@ import {
   registerLoginSuccess,
 } from '@/lib/rate-limit';
 import { isDbConfigured } from '@/lib/db';
+import AdminLoginSubmit from '@/components/AdminLoginSubmit';
 
 export const metadata = {
   title: 'Admin Login | J.M.A. Motor Service',
@@ -139,14 +140,11 @@ export default async function AdminLoginPage({ searchParams }) {
                   </div>
                 ) : null}
 
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center gap-2 h-12 px-5 w-full rounded-sm bg-gold-400 hover:bg-gold-300 text-ink-950 font-semibold tracking-wide transition-colors shadow-gold"
-                  data-testid="admin-login-submit"
-                >
-                  <LockKeyhole className="h-4 w-4" strokeWidth={2} />
-                  {t('admin.login.submit')}
-                </button>
+                <AdminLoginSubmit
+                  initialWait={params?.error === '2' ? (Number.parseInt(params?.wait, 10) || 60) : 0}
+                  submitLabel={t('admin.login.submit')}
+                  lockedTemplate={t('admin.login.lockedCountdown')}
+                />
               </form>
             )}
           </div>
