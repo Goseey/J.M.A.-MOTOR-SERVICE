@@ -152,8 +152,8 @@ export default function AdminRequestMessage({ request, action, compact = false, 
       <div
         id={panelId}
         className={compact
-          ? `${open && panelPos ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'} fixed z-50 transition-opacity duration-200 ease-out`
-          : `grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`
+          ? `${open && panelPos ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'} fixed z-50 text-left transition-opacity duration-200 ease-out`
+          : `grid text-left transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`
         }
         style={compact && panelPos ? {
           left: panelPos.left,
@@ -174,7 +174,7 @@ export default function AdminRequestMessage({ request, action, compact = false, 
                   <span className="h-px w-6 bg-sky-400" />
                   <span className="text-[10px] uppercase tracking-widest2 text-sky-200">{t('admin.notes.customerMessage')}</span>
                 </div>
-                <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed text-white/78">
+                <p className="whitespace-pre-wrap break-words text-left text-[14px] leading-relaxed text-white/78">
                   {cleanMessage}
                 </p>
               </>
