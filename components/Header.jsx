@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, MessageCircle } from 'lucide-react';
 import Logo from './Logo';
 import LanguageSwitcher from './LanguageSwitcher';
 import TikTokIcon from './icons/TikTokIcon';
@@ -52,6 +52,19 @@ export default function Header() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
+          {links.whatsapp && (
+            <a
+              href={links.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t('common.whatsapp')}
+              data-testid="header-whatsapp"
+              className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-full text-white/70 hover:text-emerald-300 hover:bg-emerald-400/10 transition-colors"
+              title={t('common.whatsapp')}
+            >
+              <MessageCircle className="h-4 w-4" strokeWidth={2} />
+            </a>
+          )}
           <a
             href={links.tiktok}
             target="_blank"
@@ -113,6 +126,19 @@ export default function Header() {
             >
               <Phone className="h-4 w-4" /> {t('common.call')} {BUSINESS.phoneDisplay}
             </a>
+            {links.whatsapp && (
+              <a
+                href={links.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={close}
+                aria-label={t('common.whatsapp')}
+                data-testid="mobile-whatsapp"
+                className="inline-flex items-center justify-center gap-2 h-12 border border-emerald-400/25 bg-emerald-400/10 hover:border-emerald-400/45 hover:bg-emerald-400/15 text-emerald-100 font-semibold tracking-wide rounded-sm"
+              >
+                <MessageCircle className="h-4 w-4" strokeWidth={2} /> {t('common.whatsapp')}
+              </a>
+            )}
             <a
               href={links.tiktok}
               target="_blank"
