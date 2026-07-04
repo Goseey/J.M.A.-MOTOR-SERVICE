@@ -16,9 +16,9 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <Reviews />
         <Services />
         <WhyUs />
-        <Reviews />
         <Contact />
         <ServiceRequestForm />
         <FAQ />
