@@ -40,7 +40,8 @@ Thumbs.db
 /memory/
 /test_reports/
 /tests/
-/scripts/
+/scripts/*
+!/scripts/create-admin.mjs
 
 # ───── Misc ─────
 *.tmp

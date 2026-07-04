@@ -312,7 +312,7 @@ export default async function AdminPage({ searchParams }) {
 function AdminControls({ filters, t, total, createAction }) {
   return (
     <div className="rounded-sm border border-white/10 bg-white/[0.02] p-4 sm:p-5" data-testid="admin-controls-panel">
-      <form method="get" className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-[minmax(260px,1.2fr)_minmax(132px,148px)_minmax(240px,1fr)_minmax(190px,0.8fr)_minmax(190px,0.8fr)_minmax(132px,148px)]" data-testid="admin-filters-bar">
+      <form method="get" className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_auto]" data-testid="admin-filters-bar">
         <AdminAutoSubmitFilters />
         <label className="flex h-14 items-center gap-3 px-4 rounded-sm border border-white/10 bg-ink-900 text-white/75 focus-within:border-gold-400/60 focus-within:bg-ink-800 transition-colors" data-testid="admin-search-field">
           <Search className="h-4 w-4 text-gold-300 shrink-0" strokeWidth={1.9} />

@@ -167,7 +167,7 @@ export default function AdminRequestMessage({ request, action, compact = false, 
           className={compact ? 'overflow-y-auto overscroll-contain rounded-sm' : 'overflow-hidden'}
           style={compact && panelPos ? { maxHeight: panelPos.maxHeight } : undefined}
         >
-          <div className="rounded-sm border border-white/10 bg-ink-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)] p-4 sm:p-5">
+          <div className="text-left rounded-sm border border-white/10 bg-ink-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)] p-4 sm:p-5">
             {cleanMessage ? (
               <>
                 <div className="mb-3 flex items-center gap-2">
