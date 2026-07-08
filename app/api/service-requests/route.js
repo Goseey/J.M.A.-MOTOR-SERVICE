@@ -41,6 +41,11 @@ function validate(body) {
        'Please enter a valid email address.');
   must('car_make_model', typeof body?.car_make_model === 'string' && body.car_make_model.trim().length > 0,
        'Please tell us the car make and model.');
+  // car_registration is optional; only reject if provided in an invalid shape.
+  must('car_registration',
+       body?.car_registration == null
+         || (typeof body.car_registration === 'string' && body.car_registration.trim().length <= 20),
+       'Registration is too long.');
   must('service_needed', typeof body?.service_needed === 'string' && body.service_needed.trim().length > 0,
        'Please choose a service.');
   must('preferred_date', isValidPreferredDate(body?.preferred_date),
@@ -55,6 +60,13 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/** Normalize a registration/number-plate: trim, collapse spaces, upper-case, cap length. */
+function normalizeRegistration(value) {
+  if (typeof value !== 'string') return null;
+  const cleaned = value.trim().replace(/\s+/g, ' ').toUpperCase().slice(0, 20);
+  return cleaned.length > 0 ? cleaned : null;
 }
 
 function formatDate(value) {
@@ -88,6 +100,7 @@ function getCustomerEmailCopy(doc) {
         phone: 'Telefoon',
         email: 'Iimayl',
         car: 'Baabuur',
+        carReg: 'Lambarka baabuurka',
         service: 'Adeeg',
         preferredDate: 'Taariikhda la rabo',
         message: 'Fariin',
@@ -109,6 +122,7 @@ function getCustomerEmailCopy(doc) {
       phone: 'Phone',
       email: 'Email',
       car: 'Car',
+      carReg: 'Car registration',
       service: 'Service',
       preferredDate: 'Preferred date',
       message: 'Message',
@@ -125,6 +139,7 @@ function makeAdminEmailHtml(doc) {
     ['Phone', escapeHtml(doc.phone)],
     ['Email', escapeHtml(doc.email)],
     ['Car (make & model)', escapeHtml(doc.car_make_model)],
+    ['Car registration', doc.car_registration ? escapeHtml(doc.car_registration) : '—'],
     ['Service needed', escapeHtml(doc.service_needed)],
     ['Preferred date', escapeHtml(formatDate(doc.preferred_date))],
     ['Language', doc.selected_language === 'so' ? 'Af-Soomaali' : 'English'],
@@ -161,6 +176,7 @@ function makeCustomerEmailHtml(doc) {
     [copy.labels.phone, escapeHtml(doc.phone)],
     [copy.labels.email, escapeHtml(doc.email)],
     [copy.labels.car, escapeHtml(doc.car_make_model)],
+    [copy.labels.carReg, doc.car_registration ? escapeHtml(doc.car_registration) : '—'],
     [copy.labels.service, escapeHtml(doc.service_needed)],
     [copy.labels.preferredDate, escapeHtml(formatDate(doc.preferred_date))],
     [copy.labels.message, doc.message ? escapeHtml(doc.message).replace(/\n/g, '<br/>') : '—'],
@@ -269,6 +285,7 @@ export async function POST(request) {
     phone: body.phone.trim(),
     email: body.email?.trim() || null,
     car_make_model: body.car_make_model.trim(),
+    car_registration: normalizeRegistration(body.car_registration),
     service_needed: body.service_needed.trim(),
     preferred_date: body.preferred_date || null,
     message: body.message?.trim() || null,
@@ -312,6 +329,7 @@ export async function POST(request) {
       phone: saved.phone,
       email: saved.email,
       car_make_model: saved.car_make_model,
+      car_registration: saved.car_registration ?? null,
       service_needed: saved.service_needed,
       preferred_date: saved.preferred_date,
       message: saved.message,

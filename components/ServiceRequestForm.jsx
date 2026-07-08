@@ -7,7 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 import { FormField, inputCls } from './form/FormField';
 
 const INITIAL_FORM = {
-  name: '', phone: '', email: '', car_make_model: '',
+  name: '', phone: '', email: '', car_make_model: '', car_registration: '',
   service_needed: '', preferred_date: '', message: '',
 };
 
@@ -87,6 +87,7 @@ export default function ServiceRequestForm() {
         phone: form.phone.trim(),
         email: form.email.trim(),
         car_make_model: form.car_make_model.trim(),
+        car_registration: form.car_registration.trim() || undefined,
         service_needed: form.service_needed.trim(),
         preferred_date: form.preferred_date || undefined,
         message: form.message.trim() || undefined,
@@ -174,6 +175,15 @@ export default function ServiceRequestForm() {
                 type="text" value={form.car_make_model} onChange={update('car_make_model')}
                 className={inputCls(errors.car_make_model)} placeholder={t('form.placeholders.car')}
                 data-testid="form-input-car"
+              />
+            </FormField>
+
+            <FormField label={t('form.fields.carReg')} hint={t('form.hints.optional')} testid="form-field-car-reg">
+              <input
+                type="text" value={form.car_registration} onChange={update('car_registration')}
+                maxLength={20} autoCapitalize="characters"
+                className={inputCls()} placeholder={t('form.placeholders.carReg')}
+                data-testid="form-input-car-reg"
               />
             </FormField>
 

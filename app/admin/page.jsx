@@ -57,6 +57,7 @@ export default async function AdminPage({ searchParams }) {
       phone: String(formData.get('phone') || '').trim(),
       email: String(formData.get('email') || '').trim(),
       car_make_model: String(formData.get('car_make_model') || '').trim(),
+      car_registration: String(formData.get('car_registration') || '').trim().slice(0, 20),
       service_needed: String(formData.get('service_needed') || '').trim(),
       preferred_date: String(formData.get('preferred_date') || '').trim(),
       message: String(formData.get('message') || '').trim(),
@@ -125,6 +126,7 @@ export default async function AdminPage({ searchParams }) {
       phone: String(formData.get('phone') || '').trim(),
       email: String(formData.get('email') || '').trim(),
       car_make_model: String(formData.get('car_make_model') || '').trim(),
+      car_registration: String(formData.get('car_registration') || '').trim().slice(0, 20),
       service_needed: String(formData.get('service_needed') || '').trim(),
       preferred_date: String(formData.get('preferred_date') || '').trim(),
       message: String(formData.get('message') || '').trim(),
@@ -146,6 +148,7 @@ export default async function AdminPage({ searchParams }) {
         phone: values.phone,
         email: values.email || null,
         car_make_model: values.car_make_model,
+        car_registration: values.car_registration || null,
         service_needed: values.service_needed,
         preferred_date: values.preferred_date || null,
         message: values.message || null,
@@ -265,7 +268,7 @@ export default async function AdminPage({ searchParams }) {
                       t={t}
                     />
                     <Cell label={t('admin.table.phone')} primary={request.phone} />
-                    <Cell label={t('admin.table.vehicleService')} primary={request.car_make_model} secondary={request.service_needed} />
+                    <Cell label={t('admin.table.vehicleService')} primary={request.car_make_model} registration={request.car_registration} secondary={request.service_needed} />
                     <StatusCell status={request.status} t={t} />
                     <Cell label={t('admin.table.preferred')} primary={request.preferred_date ? formatDate(request.preferred_date) : t('admin.table.notSpecified')} />
                     <Cell label={t('admin.table.submitted')} primary={formatDateTime(request.created_at)} />
@@ -477,11 +480,17 @@ function EmptyState({ dbConfigured, dbReachable, t }) {
   );
 }
 
-function Cell({ label, primary, secondary, primaryTitle }) {
+function Cell({ label, primary, secondary, primaryTitle, registration }) {
   return (
     <div className="min-w-0 overflow-hidden">
       <p className="lg:hidden text-[10px] uppercase tracking-widest2 text-white/35 mb-2">{label}</p>
       <p className="text-[14px] text-white/85 leading-relaxed break-words [overflow-wrap:anywhere]" title={primaryTitle || primary}>{primary}</p>
+      {registration && (
+        <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-sm border border-gold-400/30 bg-gold-400/10 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-gold-200 [overflow-wrap:anywhere]">
+          <span className="text-[9px] uppercase tracking-widest2 text-gold-300/70">Reg</span>
+          {registration}
+        </span>
+      )}
       {secondary && <p className="mt-1 text-[12px] text-white/45 break-words [overflow-wrap:anywhere]">{secondary}</p>}
     </div>
   );
@@ -636,6 +645,10 @@ async function sendBookingUpdateEmail(doc) {
     const dateLabel = isSomali ? 'Taariikhda cusub' : 'Updated date';
     const serviceLabel = isSomali ? 'Adeeg' : 'Service';
     const carLabel = isSomali ? 'Baabuur' : 'Vehicle';
+    const regLabel = isSomali ? 'Lambarka baabuurka' : 'Car registration';
+    const regRow = doc.car_registration
+      ? `<tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${regLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${escapeHtml(doc.car_registration)}</td></tr>`
+      : '';
     const footer = isSomali
       ? 'Haddii aad qabto wax su’aalo ah, fadlan si toos ah nala soo xiriir.'
       : 'If you have any questions, please contact us directly.';
@@ -656,6 +669,7 @@ async function sendBookingUpdateEmail(doc) {
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #2a2a2a;">
               <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${dateLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${formatDate(doc.preferred_date)}</td></tr>
               <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${carLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${escapeHtml(doc.car_make_model || '—')}</td></tr>
+              ${regRow}
               <tr><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a3a3a3;font:13px Arial,sans-serif;width:180px;vertical-align:top;">${serviceLabel}</td><td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#ffffff;font:14px Arial,sans-serif;">${escapeHtml(doc.service_needed || '—')}</td></tr>
             </table>
           </td></tr>

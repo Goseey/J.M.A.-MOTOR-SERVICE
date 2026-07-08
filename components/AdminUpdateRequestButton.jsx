@@ -102,6 +102,7 @@ export default function AdminUpdateRequestButton({ request, action }) {
                 <Field label={t('admin.journal.fields.phone')} name="phone" placeholder={t('admin.journal.placeholders.phone')} defaultValue={values.phone || ''} required />
                 <Field label={t('admin.journal.fields.email')} name="email" type="email" placeholder={t('admin.journal.placeholders.email')} defaultValue={values.email || ''} />
                 <Field label={t('admin.journal.fields.car')} name="car_make_model" placeholder={t('admin.journal.placeholders.car')} defaultValue={values.car_make_model || ''} required />
+                <Field label={t('admin.journal.fields.carReg')} name="car_registration" placeholder={t('admin.journal.placeholders.carReg')} defaultValue={values.car_registration || ''} />
                 <Field label={t('admin.journal.fields.service')} name="service_needed" placeholder={t('admin.journal.placeholders.service')} defaultValue={values.service_needed || ''} required />
                 <Field label={t('admin.journal.fields.date')} name="preferred_date" type="date" defaultValue={values.preferred_date ? String(values.preferred_date).slice(0, 10) : ''} />
 

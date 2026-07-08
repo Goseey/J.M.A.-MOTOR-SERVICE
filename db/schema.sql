@@ -45,6 +45,9 @@ ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS admin_note TEXT;
 
 ALTER TABLE service_requests
+  ADD COLUMN IF NOT EXISTS car_registration TEXT;
+
+ALTER TABLE service_requests
   ADD COLUMN IF NOT EXISTS created_by_admin_id UUID REFERENCES admin_users(id) ON DELETE SET NULL;
 
 ALTER TABLE service_requests
