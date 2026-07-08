@@ -41,7 +41,7 @@ function makeValidator(t) {
     if (!EMAIL_RE.test(form.email.trim())) errors.email = t('form.validation.email');
     if (form.car_make_model.trim().length < 1) errors.car_make_model = t('form.validation.car');
     if (form.service_needed.trim().length < 1) errors.service_needed = t('form.validation.service');
-    if (form.preferred_date && isBlockedBookingDate(form.preferred_date)) errors.preferred_date = 'Please choose a future date that is not Sunday.';
+    if (form.preferred_date && isBlockedBookingDate(form.preferred_date)) errors.preferred_date = t('form.validation.date');
     return errors;
   };
 }
@@ -229,7 +229,7 @@ export default function ServiceRequestForm() {
             </div>
 
             {status === 'error' && serverError && (
-              <div className="md:col-span-2 flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/40 text-red-200 rounded-sm" data-testid="form-server-error">
+              <div className="md:col-span-2 flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/40 text-red-200 rounded-sm" data-testid="form-server-error" role="alert">
                 <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
                 <p className="text-[13px] leading-relaxed">{serverError}</p>
               </div>
@@ -298,6 +298,8 @@ function SuccessCard({ t, submittedName, onReset }) {
   return (
     <div
       data-testid="form-success"
+      role="status"
+      aria-live="polite"
       className="mt-14 max-w-2xl mx-auto bg-ink-900 border border-emerald-500/30 p-8 sm:p-10 rounded-sm text-center animate-fade-up"
     >
       <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-emerald-500/15 text-emerald-400 mb-5">

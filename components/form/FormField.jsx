@@ -14,7 +14,7 @@ export function FormField({ label, hint, required, error, children, testid, clas
       </div>
       {children}
       {error && (
-        <p className="mt-2 text-[12px] text-red-300" data-testid={`${testid}-error`}>
+        <p className="mt-2 text-[12px] text-red-300" data-testid={`${testid}-error`} role="alert">
           {error}
         </p>
       )}
